@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enviar formulário · Gestor de Contratos</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">GC</span> Gestor de Contratos</a>
+      <div class="nav-actions">
+        <span class="theme-slot"></span>
+        <a class="btn btn-ghost" href="index.html">Voltar</a>
+        <a class="btn btn-outline" href="login.html">Login</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="form-wrap">
+    <div id="area-form">
+      <h1>Envie seu formulário</h1>
+      <p class="muted">Preencha os dados abaixo. Nossa equipe receberá o contrato e fará a verificação.</p>
+
+      <div class="alert alert-erro" id="erro" hidden></div>
+
+      <form id="form-contrato" novalidate>
+        <section class="card">
+          <h2>Seus dados</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="c-nome">Nome / Razão social <span class="req">*</span></label>
+              <input type="text" id="c-nome" required>
+            </div>
+            <div class="field">
+              <label for="c-tipo">Tipo</label>
+              <select id="c-tipo">
+                <option value="">Selecione</option>
+                <option>Pessoa Física</option>
+                <option>Pessoa Jurídica</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="c-documento">CPF / CNPJ</label>
+              <input type="text" id="c-documento" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="c-telefone">Telefone</label>
+              <input type="tel" id="c-telefone">
+            </div>
+          </div>
+          <div class="field">
+            <label for="c-email">E-mail</label>
+            <input type="email" id="c-email">
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Dados do contrato</h2>
+          <div class="field">
+            <label for="t-titulo">Título do contrato <span class="req">*</span></label>
+            <input type="text" id="t-titulo" required>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="t-tipo">Tipo de contrato</label>
+              <select id="t-tipo">
+                <option value="">Selecione</option>
+                <option>Prestação de serviços</option>
+                <option>Compra e venda</option>
+                <option>Locação</option>
+                <option>Fornecimento</option>
+                <option>Parceria</option>
+                <option>Outro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="t-valor">Valor total (R$)</label>
+              <input type="number" id="t-valor" min="0" step="0.01" placeholder="0,00">
+            </div>
+            <div class="field">
+              <label for="t-inicio">Data de início <span class="req">*</span></label>
+              <input type="date" id="t-inicio" required>
+            </div>
+            <div class="field">
+              <label for="t-fim">Data de término</label>
+              <input type="date" id="t-fim">
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Cláusulas <span class="muted" style="font-weight:400">(opcional)</span></h2>
+          <div id="lista-clausulas"></div>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-add-clausula">+ Adicionar cláusula</button>
+        </section>
+
+        <div style="margin-top:1.2rem">
+          <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-enviar">Enviar formulário</button>
+        </div>
+      </form>
+    </div>
+
+    <section class="card sucesso" id="area-sucesso" hidden>
+      <div class="check">✓</div>
+      <h1>Formulário enviado!</h1>
+      <p class="muted">Recebemos o seu contrato. Guarde o número abaixo para acompanhamento.</p>
+      <div class="numero" id="numero-contrato"></div>
+      <div>
+        <button class="btn btn-primary" id="btn-outro">Enviar outro formulário</button>
+        <a class="btn btn-outline" href="index.html">Voltar ao início</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script src="js/formulario.js"></script>
+</body>
+</html>

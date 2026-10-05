@@ -1,0 +1,23 @@
+# Variáveis de ambiente
+.env
+.env.*
+
+# Mantém o exemplo versionado
+!.env.example
+
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

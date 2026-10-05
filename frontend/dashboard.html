@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Gestor de Contratos</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">GC</span> Gestor de Contratos</a>
+      <div class="topbar-actions">
+        <span class="user-chip" id="user-chip"></span>
+        <span class="theme-slot"></span>
+        <button class="btn btn-ghost btn-sm" id="btn-sair">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container dash">
+    <div class="dash-head">
+      <div>
+        <h1>Painel de contratos</h1>
+        <p class="muted" style="margin:.2rem 0 0">Verifique, acompanhe e gerencie os contratos recebidos.</p>
+      </div>
+      <div class="dash-tools">
+        <input type="search" id="busca" placeholder="Buscar por número, título, cliente…" aria-label="Buscar contratos">
+        <button class="btn btn-outline btn-sm" id="btn-atualizar">Atualizar</button>
+      </div>
+    </div>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="charts">
+      <div class="card chart-card">
+        <h3>Verificação dos contratos</h3>
+        <div class="chart-box"><canvas id="g-verificacao"></canvas></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Contratos por tipo</h3>
+        <div class="chart-box"><canvas id="g-tipo"></canvas></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Valor por mês de início</h3>
+        <div class="chart-box"><canvas id="g-valor-mes"></canvas></div>
+      </div>
+      <div class="card chart-card">
+        <h3>Top clientes por valor</h3>
+        <div class="chart-box"><canvas id="g-clientes"></canvas></div>
+      </div>
+    </section>
+
+    <section class="card tabela-card pendentes">
+      <div class="tabela-head">
+        <div>
+          <h2>Aguardando verificação <span class="badge pendente" id="cont-pend">0</span></h2>
+          <p class="muted">Contratos que ainda não foram verificados.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th><th>Título</th><th>Cliente</th><th>Tipo</th>
+              <th class="num">Valor</th><th>Início</th><th>Término</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tb-pendentes"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card tabela-card verificados">
+      <div class="tabela-head">
+        <div>
+          <h2>Contratos verificados <span class="badge verificado" id="cont-ver">0</span></h2>
+          <p class="muted">Contratos já conferidos, com o responsável pela verificação.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th><th>Título</th><th>Cliente</th><th>Tipo</th>
+              <th class="num">Valor</th><th>Término</th><th>Verificado por</th><th>Verificado em</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tb-verificados"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Detalhes do contrato -->
+  <dialog id="dlg-detalhe">
+    <div class="dlg-head">
+      <h3 id="detalhe-titulo">Contrato</h3>
+      <button class="icon-btn" id="detalhe-fechar" aria-label="Fechar">✕</button>
+    </div>
+    <div class="dlg-body" id="detalhe-corpo"></div>
+  </dialog>
+
+  <!-- Confirmação de exclusão -->
+  <dialog id="dlg-confirmar" class="sm">
+    <div class="dlg-body">
+      <h3>Confirmar exclusão</h3>
+      <p class="muted" id="confirmar-msg"></p>
+      <div class="dlg-foot">
+        <button class="btn btn-outline" id="confirmar-cancel">Cancelar</button>
+        <button class="btn btn-danger" id="confirmar-ok">Excluir</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestor de Contratos</title>
+  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">Ω</span>Gestor de Contratos</a>
+      <nav class="nav-links">
+        <a href="#recursos">Recursos</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#formulario">Envie seu formulário</a>
+      </nav>
+      <div class="nav-actions">
+        <span class="theme-slot"></span>
+        <a class="btn btn-ghost" href="login.html">Login</a>
+        <a class="btn btn-primary" href="registrar.html">Registrar</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Gestão de contratos simples e segura</span>
+          <h1>Seus contratos organizados, verificados e sob controle.</h1>
+          <p class="lead">Envie as informações do seu contrato em minutos. Nossa equipe analisa, verifica e acompanha cada etapa até a conclusão.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary btn-lg" href="formulario.html">Envie seu formulário</a>
+            <a class="btn btn-outline btn-lg" href="login.html">Acesso da equipe</a>
+          </div>
+        </div>
+
+        <div class="preview" aria-hidden="true">
+          <div class="preview-head"><i></i><i></i><i></i></div>
+          <div class="preview-kpis">
+            <div><small>Contratos</small><strong>128</strong></div>
+            <div><small>Verificados</small><strong>94</strong></div>
+            <div><small>Pendentes</small><strong>34</strong></div>
+          </div>
+          <div class="preview-bars">
+            <span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span>
+            <span style="height:85%"></span><span style="height:70%"></span><span style="height:95%"></span>
+          </div>
+          <div class="preview-row"><span>CT-2026-00042</span><span class="badge verificado">Verificado</span></div>
+          <div class="preview-row"><span>CT-2026-00043</span><span class="badge pendente">Pendente</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="recursos">
+      <div class="container">
+        <div class="section-title">
+          <h2>Tudo o que a gestão de contratos precisa</h2>
+          <p class="muted">Uma plataforma pensada para a equipe que acompanha cada contrato de ponta a ponta.</p>
+        </div>
+        <div class="features">
+          <article class="feature"><div class="ico">1</div><h3>Verificação com responsável</h3><p>Cada contrato verificado registra quem fez a conferência e quando.</p></article>
+          <article class="feature"><div class="ico">2</div><h3>Pendentes e verificados separados</h3><p>Veja de imediato o que ainda precisa de análise e o que já foi aprovado.</p></article>
+          <article class="feature"><div class="ico">3</div><h3>Painel com gráficos</h3><p>Indicadores, valores por período, tipos de contrato e principais clientes.</p></article>
+          <article class="feature"><div class="ico">4</div><h3>Cláusulas e aditivos</h3><p>Consulte cláusulas, aditivos e o histórico de status em um só lugar.</p></article>
+          <article class="feature"><div class="ico">5</div><h3>Formulário para o cliente</h3><p>O cliente envia os dados e o contrato já chega ao painel da equipe.</p></article>
+          <article class="feature"><div class="ico">6</div><h3>Modo claro e escuro</h3><p>Escolha o tema que for mais confortável para o seu trabalho.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="como-funciona">
+      <div class="container">
+        <div class="section-title">
+          <h2>Como funciona</h2>
+        </div>
+        <div class="features">
+          <article class="feature"><div class="ico">1</div><h3>Você envia o formulário</h3><p>Preencha seus dados, as informações do contrato e as cláusulas.</p></article>
+          <article class="feature"><div class="ico">2</div><h3>A equipe analisa</h3><p>O contrato aparece no painel como pendente de verificação.</p></article>
+          <article class="feature"><div class="ico">3</div><h3>Contrato verificado</h3><p>Um funcionário confere e verifica, e o contrato segue para a lista de verificados.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="formulario">
+      <div class="container">
+        <div class="cta-box">
+          <h2>Envie seu formulário</h2>
+          <p>Preencha o formulário com os dados do contrato. Ele é enviado direto para a nossa equipe, que cuida do restante.</p>
+          <a class="btn btn-lg" href="formulario.html">Preencher formulário</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">© <span id="ano"></span> Omega. Todos os direitos reservados.</div>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <script>document.getElementById("ano").textContent = new Date().getFullYear();</script>
+</body>
+</html>
