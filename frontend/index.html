@@ -3,104 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gestor de Contratos</title>
-  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Gestor de Contratos com apoio de IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/landing.css">
 </head>
-<body>
+<body class="landing-page">
 
-  <header class="navbar">
-    <div class="nav-inner">
-      <a class="brand" href="index.html"><span class="brand-mark">Ω</span>Gestor de Contratos</a>
-      <nav class="nav-links">
+  <header class="site-header">
+    <div class="shell nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">Ω</span><span>Omega <small>Gestão de contratos</small></span></a>
+      <nav class="nav-links" aria-label="Navegação principal">
         <a href="#recursos">Recursos</a>
         <a href="#como-funciona">Como funciona</a>
-        <a href="#formulario">Envie seu formulário</a>
       </nav>
       <div class="nav-actions">
-        <span class="theme-slot"></span>
-        <a class="btn btn-ghost" href="login.html">Login</a>
-        <a class="btn btn-primary" href="registrar.html">Registrar</a>
+        <a class="btn btn--inverse nav-login" href="login.html">Entrar</a>
+        <a class="btn btn--primary" href="registrar.html">Criar conta <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="container hero-grid">
-        <div>
-          <span class="eyebrow">Gestão de contratos simples e segura</span>
-          <h1>Seus contratos organizados, verificados e sob controle.</h1>
-          <p class="lead">Envie as informações do seu contrato em minutos. Nossa equipe analisa, verifica e acompanha cada etapa até a conclusão.</p>
-          <div class="hero-cta">
-            <a class="btn btn-primary btn-lg" href="formulario.html">Envie seu formulário</a>
-            <a class="btn btn-outline btn-lg" href="login.html">Acesso da equipe</a>
-          </div>
+    <section class="hero shell">
+      <div class="hero-copy">
+        <p class="eyebrow">CONTROLE CONTRATUAL, COM MAIS CLAREZA</p>
+        <h1>Gerencie seus contratos com <em>apoio de IA</em></h1>
+        <p class="lead">Cadastre seus contratos e veja multas, reajustes e obrigações com impacto financeiro, além dos prazos de vencimento.</p>
+        <div class="hero-cta">
+          <a class="btn btn--primary" href="registrar.html">Criar conta <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
+          <a class="btn btn--inverse" href="login.html">Entrar <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
         </div>
+        <p class="hero-note">Sua carteira de contratos. No seu controle.</p>
+      </div>
 
-        <div class="preview" aria-hidden="true">
-          <div class="preview-head"><i></i><i></i><i></i></div>
-          <div class="preview-kpis">
-            <div><small>Contratos</small><strong>128</strong></div>
-            <div><small>Verificados</small><strong>94</strong></div>
-            <div><small>Pendentes</small><strong>34</strong></div>
+      <aside class="example" aria-label="Exemplo fictício de análise de contrato">
+        <div class="example-block example-topline">
+          <span>EXEMPLO FICTÍCIO</span>
+        </div>
+        <div class="example-block example-clause">
+          <div class="document-label">CLÁUSULA 08 <span>·</span> RESCISÃO</div>
+          <blockquote>“Em caso de encerramento antecipado, será aplicada multa equivalente a <mark>20% do valor restante</mark> do contrato.”</blockquote>
+        </div>
+        <div class="example-block example-attention">
+          <span class="result-label">PONTO DE ATENÇÃO FINANCEIRA</span>
+          <p>Multa de rescisão: <strong>20%</strong> <span class="risk-label">(alto impacto)</span></p>
+          <div class="example-due"><svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#calendar-clock"/></svg><span>Vence em 30 dias</span></div>
+        </div>
+        <p class="example-note">Análise automática. Confira no contrato original.</p>
+      </aside>
+    </section>
+
+    <section class="section resources" id="recursos">
+      <div class="shell">
+        <div class="section-heading">
+          <p class="eyebrow">UMA VISÃO MAIS ÚTIL</p>
+          <h2>Do texto às decisões que merecem atenção.</h2>
+          <p>Ferramentas para organizar sua carteira e revisar os pontos financeiros de cada contrato.</p>
+        </div>
+        <div class="resource-layout">
+          <article class="resource-featured">
+            <span class="resource-number">01 <span>RECURSO EM DESTAQUE</span></span>
+            <h3>Análise de cláusulas com IA</h3>
+            <p>Sinalize multas, reajustes e obrigações com impacto financeiro. A análise ajuda a localizar pontos de atenção para você conferir no contrato original.</p>
+          </article>
+          <div class="resource-list">
+            <article class="list-row">
+              <span class="list-number">02</span>
+              <div class="list-copy"><h3>Revisão com o trecho original ao lado</h3><p>Confira o contexto do contrato junto ao que foi identificado.</p></div>
+            </article>
+            <article class="list-row">
+              <span class="list-number">03</span>
+              <div class="list-copy"><h3>Vencimentos em destaque</h3><p>Tenha os prazos de término da carteira sempre à vista.</p></div>
+            </article>
+            <article class="list-row">
+              <span class="list-number">04</span>
+              <div class="list-copy"><h3>Dashboard da carteira</h3><p>Acompanhe valores, tipos de contrato e pontos de atenção.</p></div>
+            </article>
+            <article class="list-row">
+              <span class="list-number">05</span>
+              <div class="list-copy"><h3>Cláusulas e aditivos</h3><p>Mantenha os registros relacionados organizados por contrato.</p></div>
+            </article>
           </div>
-          <div class="preview-bars">
-            <span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span>
-            <span style="height:85%"></span><span style="height:70%"></span><span style="height:95%"></span>
-          </div>
-          <div class="preview-row"><span>CT-2026-00042</span><span class="badge verificado">Verificado</span></div>
-          <div class="preview-row"><span>CT-2026-00043</span><span class="badge pendente">Pendente</span></div>
         </div>
       </div>
     </section>
 
-    <section class="section section-alt" id="recursos">
-      <div class="container">
-        <div class="section-title">
-          <h2>Tudo o que a gestão de contratos precisa</h2>
-          <p class="muted">Uma plataforma pensada para a equipe que acompanha cada contrato de ponta a ponta.</p>
-        </div>
-        <div class="features">
-          <article class="feature"><div class="ico">1</div><h3>Verificação com responsável</h3><p>Cada contrato verificado registra quem fez a conferência e quando.</p></article>
-          <article class="feature"><div class="ico">2</div><h3>Pendentes e verificados separados</h3><p>Veja de imediato o que ainda precisa de análise e o que já foi aprovado.</p></article>
-          <article class="feature"><div class="ico">3</div><h3>Painel com gráficos</h3><p>Indicadores, valores por período, tipos de contrato e principais clientes.</p></article>
-          <article class="feature"><div class="ico">4</div><h3>Cláusulas e aditivos</h3><p>Consulte cláusulas, aditivos e o histórico de status em um só lugar.</p></article>
-          <article class="feature"><div class="ico">5</div><h3>Formulário para o cliente</h3><p>O cliente envia os dados e o contrato já chega ao painel da equipe.</p></article>
-          <article class="feature"><div class="ico">6</div><h3>Modo claro e escuro</h3><p>Escolha o tema que for mais confortável para o seu trabalho.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="como-funciona">
-      <div class="container">
-        <div class="section-title">
+    <section class="section process" id="como-funciona">
+      <div class="shell process-layout">
+        <div class="section-heading process-heading">
+          <p class="eyebrow">SIMPLES POR DESENHO</p>
           <h2>Como funciona</h2>
         </div>
-        <div class="features">
-          <article class="feature"><div class="ico">1</div><h3>Você envia o formulário</h3><p>Preencha seus dados, as informações do contrato e as cláusulas.</p></article>
-          <article class="feature"><div class="ico">2</div><h3>A equipe analisa</h3><p>O contrato aparece no painel como pendente de verificação.</p></article>
-          <article class="feature"><div class="ico">3</div><h3>Contrato verificado</h3><p>Um funcionário confere e verifica, e o contrato segue para a lista de verificados.</p></article>
-        </div>
+        <ol class="steps">
+          <li class="list-row"><span class="list-number">01</span><div class="list-copy"><h3>Cadastre o contrato</h3><p>Reúna os dados e o texto na sua carteira.</p></div></li>
+          <li class="list-row"><span class="list-number">02</span><div class="list-copy"><h3>A IA sinaliza cláusulas de impacto financeiro</h3><p>Veja os pontos que podem afetar os custos e obrigações.</p></div></li>
+          <li class="list-row"><span class="list-number">03</span><div class="list-copy"><h3>Você revisa e acompanha na carteira e no dashboard</h3><p>Consulte os registros e os prazos quando precisar.</p></div></li>
+        </ol>
       </div>
     </section>
 
-    <section class="section" id="formulario">
-      <div class="container">
-        <div class="cta-box">
-          <h2>Envie seu formulário</h2>
-          <p>Preencha o formulário com os dados do contrato. Ele é enviado direto para a nossa equipe, que cuida do restante.</p>
-          <a class="btn btn-lg" href="formulario.html">Preencher formulário</a>
+    <section class="closing">
+      <div class="shell closing-inner">
+        <div>
+          <p class="closing-note">Cadastre seu primeiro contrato e acompanhe prazos e multas.</p>
+          <h2>Comece agora</h2>
         </div>
+        <a class="btn btn--inverse" href="registrar.html">Criar conta <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="container">© <span id="ano"></span> Omega. Todos os direitos reservados.</div>
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <a class="brand footer-brand" href="index.html"><span class="brand-mark">Ω</span><span>Omega <small>Gestão de contratos</small></span></a>
+      <span>© <span id="ano"></span> Omega. Todos os direitos reservados.</span>
+    </div>
   </footer>
 
-  <script src="js/common.js"></script>
   <script>document.getElementById("ano").textContent = new Date().getFullYear();</script>
 </body>
 </html>
