@@ -299,6 +299,7 @@ td.titulo-col { white-space: normal; min-width: 180px; }
 .badge.pendente { background: var(--warning-bg); color: var(--warning); }
 .badge.verificado { background: var(--success-bg); color: var(--success); }
 .badge.contador { background: var(--primary-soft); color: var(--primary); }
+.badge.impacto-alto { background: var(--danger-bg); color: var(--danger); }
 .quem { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; }
 .avatar {
   display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
@@ -353,8 +354,14 @@ dialog.sm { width: min(440px, 100% - 2rem); }
   .nav-links { display: none; }
 }
 @media (max-width: 560px) {
+  .landing-page .nav-actions { gap: .3rem; }
+  .landing-page .nav-actions .btn { padding-inline: .55rem; }
   .grid-2 { grid-template-columns: 1fr; }
   .user-chip { display: none; }
   .hero { padding-top: 3rem; }
   .dash-tools input[type="search"] { width: 100%; }
+}
+@media (max-width: 360px) {
+  .landing-page .nav-inner { height: auto; min-height: 66px; flex-wrap: wrap; padding-block: .5rem; }
+  .landing-page .nav-inner > .brand { font-size: .95rem; }
 }

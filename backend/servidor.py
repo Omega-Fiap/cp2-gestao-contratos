@@ -17,7 +17,9 @@ load_dotenv()
 
 API_URL = os.getenv("API_URL", "http://127.0.0.1:5000").rstrip("/")
 PORTA = int(os.getenv("PORT", "8000"))
-PASTA_FRONTEND = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")
+PASTA_FRONTEND = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend"
+)
 
 app = Flask(__name__, static_folder=PASTA_FRONTEND, static_url_path="")
 
