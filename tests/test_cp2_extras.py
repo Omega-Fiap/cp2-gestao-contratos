@@ -1,25 +1,13 @@
 from datetime import date
 
-import pytest
 
-from api.app import (
+from api.extensions import db
+from api.models import (
     AnaliseContrato,
     Cliente,
     Contrato,
     ResultadoAnaliseClausula,
-    app,
-    db,
 )
-
-
-@pytest.fixture
-def cliente_api():
-    app.config.update(TESTING=True)
-    with app.app_context():
-        db.create_all()
-        yield app.test_client()
-        db.session.remove()
-        db.drop_all()
 
 
 def autenticar(cliente_api, email):

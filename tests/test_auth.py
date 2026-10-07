@@ -1,31 +1,16 @@
-import pytest
-
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
-from api.app import (
+from api.extensions import db
+from api.utils import agora
+from api.models import (
     Aditivo,
     Cliente,
     Clausula,
     Contrato,
     HistoricoStatus,
     Usuario,
-    app,
-    db,
 )
-
-
-@pytest.fixture
-def cliente_api():
-    app.config.update(
-        TESTING=True,
-        SQLALCHEMY_DATABASE_URI="sqlite://",
-    )
-    with app.app_context():
-        db.create_all()
-        yield app.test_client()
-        db.session.remove()
-        db.drop_all()
 
 
 def test_autocadastro_ignora_papel_enviado_e_cria_usuario(cliente_api):
@@ -313,7 +298,7 @@ def test_resumo_dashboard_exige_token_e_usa_apenas_dados_do_usuario(cliente_api)
     contrato_a = criar_contrato(usuario_a["id"], cliente.id, "DA-001")
     contrato_a.valor_total = Decimal("1250.50")
     contrato_a.tipo_contrato = "Serviço"
-    contrato_a.data_fim = datetime.utcnow().date() + timedelta(days=10)
+    contrato_a.data_fim = agora().date() + timedelta(days=10)
     contrato_b = criar_contrato(usuario_b["id"], cliente.id, "DB-001")
     contrato_b.valor_total = Decimal("9000.00")
     contrato_b.tipo_contrato = "Locação"
@@ -448,7 +433,7 @@ def test_clientes_sao_privados_e_contrato_nao_aceita_cliente_alheio(cliente_api)
         json={"nome": "Cliente privado B", "documento": "DOC-B"},
     )
     assert criado_b.status_code == 201
-    assert Cliente.query.get(criado_b.json["id"]).usuario_id == usuario_b["id"]
+    assert db.session.get(Cliente, criado_b.json["id"]).usuario_id == usuario_b["id"]
     assert cliente_api.get("/clientes").status_code == 401
     assert cliente_api.get("/clientes", headers=headers_a).json == []
     assert cliente_api.get(

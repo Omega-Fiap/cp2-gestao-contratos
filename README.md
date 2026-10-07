@@ -2,7 +2,7 @@
 
 ## Execução atual do CP2
 
-O sistema local tem três componentes: API Flask/PostgreSQL (`api/app.py`), proxy same-origin e servidor das páginas (`backend/servidor.py`) e frontend HTML/CSS/JavaScript (`frontend/`). A integração externa de análise textual usa a API do Gemini quando `GEMINI_API_KEY` está configurada. Este repositório não contém prova de deploy AWS ativo; as referências antigas a AWS abaixo são histórico do desenho inicial, não instruções de execução local.
+O sistema local tem três componentes: API Flask/PostgreSQL (pacote `api/`), proxy same-origin e servidor das páginas (`frontend/servidor.py`) e frontend HTML/CSS/JavaScript (`frontend/public/`). A integração externa de análise textual usa a API do Gemini quando `GEMINI_API_KEY` está configurada. Este repositório não contém prova de deploy AWS ativo; as referências antigas a AWS abaixo são histórico do desenho inicial, não instruções de execução local.
 
 ### Preparar o ambiente
 
@@ -14,21 +14,50 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Copie os exemplos de ambiente para `.env` e preencha os dados do PostgreSQL e uma chave de assinatura própria. Configure `GEMINI_API_KEY` somente se for demonstrar análise real; os testes simulam o provedor e não precisam dessa chave.
+Copie `.env.example` para `.env` e preencha os dados do PostgreSQL e uma chave de assinatura própria. Configure `GEMINI_API_KEY` somente se for demonstrar análise real; os testes simulam o provedor e não precisam dessa chave.
 
-Antes de apontar para um banco existente, leia e aplique manualmente, na ordem, as migrações `api/migrations/001_cliente_usuario_id.sql` a `005_fk_cascade_e_indices.sql`. A migração 004 interrompe a operação se houver contratos legados sem proprietário: atribua-os explicitamente antes de repetir. As migrações não foram executadas neste ambiente nem contra o RDS.
+Antes de apontar para um banco existente, leia e aplique manualmente, na ordem, as migrações `database/migrations/001_cliente_usuario_id.sql` a `005_fk_cascade_e_indices.sql`. A migração 004 interrompe a operação se houver contratos legados sem proprietário: atribua-os explicitamente antes de repetir. As migrações não foram executadas neste ambiente nem contra o RDS.
 
 Abra dois terminais na raiz:
 
 ```bash
-python -m api.app
+python -m api
 ```
 
 ```bash
-python -m backend.servidor
+python -m frontend.servidor
 ```
 
 A aplicação é servida em `http://127.0.0.1:8000`; a API em `http://127.0.0.1:5000`, encaminhada pelo frontend em `/api`. Swagger UI: `http://127.0.0.1:5000/swagger/`.
+
+### Estrutura do projeto
+
+```text
+.
+├── api/                      API Flask (arquitetura em camadas)
+│   ├── __init__.py           create_app(): monta app, CORS, Swagger e rotas
+│   ├── __main__.py           python -m api
+│   ├── config.py             configuração lida do ambiente
+│   ├── extensions.py         db (SQLAlchemy) e salvar()
+│   ├── exceptions.py         ErroAplicacao (erro de negócio -> JSON)
+│   ├── errors.py             tratadores de erro HTTP
+│   ├── seguranca.py          token e decoradores @autenticado / @administrador
+│   ├── utils.py, http.py     conversões de dados e leitura do corpo JSON
+│   ├── models/               entidades do banco, um arquivo por tabela
+│   ├── services/             regras de negócio e validações (sem Flask)
+│   ├── routes/               blueprints finos: HTTP -> serviço -> JSON
+│   ├── integrations/         provedores externos (Gemini)
+│   └── static/swagger.json   especificação OpenAPI
+├── database/migrations/      scripts SQL aplicados manualmente, em ordem
+├── frontend/
+│   ├── servidor.py           servidor das páginas e proxy /api -> API
+│   └── public/               HTML, css/ e js/ servidos ao navegador
+├── tests/                    pytest (SQLite em memória)
+├── docs/                     auditoria do CP2 e instruções do agente
+├── .env.example, requirements.txt, pytest.ini
+```
+
+Fluxo de uma requisição: `routes` lê a requisição → `services` aplica as regras e acessa os `models` → a rota devolve JSON. Os serviços sinalizam falhas com `ErroAplicacao`, que vira `{"erro": ...}` com o código HTTP correto.
 
 ### Testes
 
@@ -36,7 +65,7 @@ A aplicação é servida em `http://127.0.0.1:8000`; a API em `http://127.0.0.1:
 pytest -q
 ```
 
-Os testes usam SQLite em memória (`tests/conftest.py` define `DATABASE_URL=sqlite://` antes de importar a API, então o banco real nunca é tocado) e simulam chamadas ao Gemini. Eles não certificam a conexão com RDS nem a disponibilidade/quota do provedor.
+Os testes usam SQLite em memória (`tests/conftest.py` cria a aplicação com `create_app()` apontando para SQLite e ainda define `DATABASE_URL=sqlite://` como rede de segurança, então o banco real nunca é tocado) e simulam chamadas ao Gemini. Eles não certificam a conexão com RDS nem a disponibilidade/quota do provedor.
 
 ### Limites atuais e apresentação
 
@@ -160,7 +189,7 @@ Ele possui duas responsabilidades principais:
 
 ## 3. API REST Flask
 
-A API (`api/app.py`) recebe requisições HTTP, valida os dados, aplica a autenticação por token e o isolamento por usuário, e retorna JSON. Os métodos usados são `GET`, `POST`, `PUT` e `DELETE`. Os endpoints de listagem de contratos têm paginação e filtros.
+A API (pacote `api/`) recebe requisições HTTP nas rotas, delega as regras de negócio e a validação aos serviços, aplica a autenticação por token e o isolamento por usuário, e retorna JSON. Os métodos usados são `GET`, `POST`, `PUT` e `DELETE`. Os endpoints de listagem de contratos têm paginação e filtros.
 
 ## 4. PostgreSQL
 
@@ -346,7 +375,7 @@ O `.gitignore` deve conter:
 
 ## Execução local
 
-Veja "Execução atual do CP2" no início deste arquivo: `python -m api.app` (API em `http://127.0.0.1:5000`) e `python -m backend.servidor` (frontend em `http://127.0.0.1:8000`). Para criar as tabelas em um banco novo, `python -m api.app` executa `create_all`. Defina `FLASK_DEBUG=1` apenas em desenvolvimento.
+Veja "Execução atual do CP2" no início deste arquivo: `python -m api` (API em `http://127.0.0.1:5000`) e `python -m frontend.servidor` (frontend em `http://127.0.0.1:8000`). Para criar as tabelas em um banco novo, `python -m api` executa `create_all`. Defina `FLASK_DEBUG=1` apenas em desenvolvimento.
 
 ---
 

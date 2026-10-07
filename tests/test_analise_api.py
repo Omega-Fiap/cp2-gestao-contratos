@@ -1,21 +1,9 @@
 from datetime import date
-import importlib
-
-import pytest
-
-from api.app import Cliente, Clausula, Contrato, Usuario, app, db
-
-api_module = importlib.import_module("api.app")
 
 
-@pytest.fixture
-def cliente_api():
-    app.config.update(TESTING=True, SQLALCHEMY_DATABASE_URI="sqlite://")
-    with app.app_context():
-        db.create_all()
-        yield app.test_client()
-        db.session.remove()
-        db.drop_all()
+from api.extensions import db
+from api.integrations import gemini
+from api.models import Cliente, Clausula, Contrato
 
 
 def criar_usuario(cliente_api, nome, email):
@@ -92,7 +80,7 @@ def test_analise_persiste_reutiliza_e_reanalisa_ao_mudar_texto(cliente_api, monk
             "versao_prompt": "teste-1",
         }
 
-    monkeypatch.setattr(api_module.servico_analise_clausulas, "analisar_clausulas", analisar_falso)
+    monkeypatch.setattr(gemini, "analisar_clausulas", analisar_falso)
 
     resposta = cliente_api.post(f"/contratos/{contrato.id}/analisar", headers=headers)
     assert resposta.status_code == 201
@@ -130,7 +118,7 @@ def test_analise_nao_vaza_dados_do_cliente_e_trata_erros(cliente_api, monkeypatc
 
     enviada = []
     monkeypatch.setattr(
-        api_module.servico_analise_clausulas,
+        gemini,
         "analisar_clausulas",
         lambda texto: (enviada.append(texto), {
             "clausulas": [], "modelo": "fake", "versao_prompt": "teste"
@@ -143,9 +131,9 @@ def test_analise_nao_vaza_dados_do_cliente_e_trata_erros(cliente_api, monkeypatc
     assert "123.456.789-00" not in enviada[0]
 
     def erro_gemini(_texto):
-        raise api_module.servico_analise_clausulas.ErroAnaliseClausulas("indisponível")
+        raise gemini.ErroAnaliseClausulas("indisponível")
 
-    monkeypatch.setattr(api_module.servico_analise_clausulas, "analisar_clausulas", erro_gemini)
+    monkeypatch.setattr(gemini, "analisar_clausulas", erro_gemini)
     Clausula.query.filter_by(contrato_id=contrato.id).one().descricao = "Texto novo sem cache"
     db.session.commit()
     falha = cliente_api.post(f"/contratos/{contrato.id}/analisar", headers=headers)
@@ -164,7 +152,7 @@ def test_usuario_pode_confirmar_corrigir_ou_descartar_achado(cliente_api, monkey
     db.session.commit()
 
     monkeypatch.setattr(
-        api_module.servico_analise_clausulas,
+        gemini,
         "analisar_clausulas",
         lambda _texto: {
             "clausulas": [{

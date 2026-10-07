@@ -1,6 +1,6 @@
 # Gestor de Contratos (Omega) — instruções para o agente
 
-Projeto acadêmico FIAP (CP2). Back-end Flask em `api/app.py` + PostgreSQL (AWS RDS). Front-end HTML/JS/CSS em `frontend/` (páginas, `js/`, `css/`), servido em 127.0.0.1:8000. Testes com pytest.
+Projeto acadêmico FIAP (CP2). Back-end Flask no pacote `api/` (rotas → serviços → modelos; ver "Estrutura do projeto" no README) + PostgreSQL (AWS RDS). Front-end HTML/JS/CSS em `frontend/public/` (páginas, `js/`, `css/`), servido em 127.0.0.1:8000. Testes com pytest.
 
 ## Produto
 - O usuário é o **gestor de contratos de uma empresa**. Ele cadastra seus contratos e usa a IA como **suporte** para destacar cláusulas com impacto financeiro (ex.: multa de rescisão de 20%).
@@ -35,7 +35,7 @@ Projeto acadêmico FIAP (CP2). Back-end Flask em `api/app.py` + PostgreSQL (AWS 
 
 ## Análise de cláusulas com LLM (a implementar)
 - Provedor planejado: **API do Gemini, nível gratuito**. Chave em variável de ambiente, faturamento desativado. Não usar Bedrock (a conta AWS do lab não tem permissão).
-- Chamada isolada em uma função `analisar_clausulas(texto)`, para trocar de provedor em um único lugar.
+- Chamada isolada em uma função `analisar_clausulas(texto)` (`api/integrations/gemini.py`), para trocar de provedor em um único lugar.
 - **Uma chamada única com saída estruturada.** Não usar agente nem chatbot genérico.
 - Entrada: apenas o texto das cláusulas, **sem nomes, CNPJ ou dados pessoais**. No nível gratuito o conteúdo pode ser usado pelo provedor, então a demo e os testes usam só contratos fictícios.
 - Saída em JSON validado por schema, lista de cláusulas com: tipo, valor ou percentual, nível de impacto (baixo, médio, alto) e `trecho_original`.

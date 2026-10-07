@@ -1,10 +1,5 @@
-from api.app import app
-
-
-def test_especificacao_openapi_e_serviva_e_documenta_rotas_criticas():
-    cliente = app.test_client()
-
-    resposta = cliente.get("/static/swagger.json")
+def test_especificacao_openapi_e_serviva_e_documenta_rotas_criticas(cliente_api):
+    resposta = cliente_api.get("/static/swagger.json")
 
     assert resposta.status_code == 200
     especificacao = resposta.get_json()

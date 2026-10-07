@@ -3,7 +3,7 @@ from urllib.error import HTTPError
 
 import pytest
 
-from api import analisar_clausulas as modulo
+from api.integrations import gemini as modulo
 
 TEXTO = "A rescisão antecipada gera multa de 20% do valor restante do contrato."
 ACHADO_VALIDO = {

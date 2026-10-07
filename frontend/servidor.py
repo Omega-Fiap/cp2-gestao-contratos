@@ -5,7 +5,7 @@ Backend do sistema (front-end + ponte para a API).
 - Encaminha tudo que chega em /api/... para a API externa definida em API_URL,
   então o navegador só conversa com este servidor (sem problemas de CORS).
 
-Rodar:  python servidor.py
+Rodar:  python -m frontend.servidor
 """
 import os
 
@@ -17,9 +17,7 @@ load_dotenv()
 
 API_URL = os.getenv("API_URL", "http://127.0.0.1:5000").rstrip("/")
 PORTA = int(os.getenv("PORT", "8000"))
-PASTA_FRONTEND = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend"
-)
+PASTA_FRONTEND = os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")
 
 app = Flask(__name__, static_folder=PASTA_FRONTEND, static_url_path="")
 
@@ -74,4 +72,8 @@ def nao_encontrado(_):
 if __name__ == "__main__":
     print(f"Sistema:  http://127.0.0.1:{PORTA}")
     print(f"API em:   {API_URL}")
-    app.run(host="0.0.0.0", port=PORTA, debug=True)
+    app.run(
+        host=os.getenv("FLASK_HOST", "127.0.0.1"),
+        port=PORTA,
+        debug=os.getenv("FLASK_DEBUG") == "1",
+    )

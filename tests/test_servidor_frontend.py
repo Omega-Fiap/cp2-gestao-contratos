@@ -1,4 +1,4 @@
-from backend import servidor
+from frontend import servidor
 
 
 class RespostaRemota:
