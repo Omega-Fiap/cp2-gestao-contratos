@@ -283,6 +283,7 @@
     if (acao === "verificar") verificar(id, botao);
     if (acao === "analisar") analisar(id, botao);
     if (acao === "excluir") excluir(id);
+    if (acao === "editar") editar(id);
   });
 
   document.addEventListener("click", (e) => {
@@ -373,6 +374,74 @@
       }
     } catch (err) {
       $("#detalhe-corpo").innerHTML = `<div class="alert alert-erro">${esc(err.message)}</div>`;
+    }
+  }
+
+  /* ---------------- Edição do contrato ---------------- */
+
+  function editar(id) {
+    const c = S.contratos.find((x) => x.id === id);
+    if (!c) return;
+    $("#detalhe-corpo").innerHTML = `
+      <h3 class="detalhe-titulo">Editar ${esc(c.numero)}</h3>
+      <form id="form-edicao" novalidate>
+        <div class="alert alert-erro" id="edicao-erro" hidden></div>
+        <div class="field"><label for="ed-titulo">Título</label>
+          <input id="ed-titulo" value="${esc(c.titulo)}" maxlength="200" required></div>
+        <div class="field"><label for="ed-tipo">Tipo de contrato</label>
+          <input id="ed-tipo" value="${esc(c.tipo_contrato || "")}" maxlength="80"></div>
+        <div class="field"><label for="ed-valor">Valor total (R$)</label>
+          <input id="ed-valor" type="number" min="0" step="0.01" value="${c.valor_total ?? ""}"></div>
+        <div class="field"><label for="ed-inicio">Início</label>
+          <input id="ed-inicio" type="date" value="${esc(c.data_inicio || "")}" required></div>
+        <div class="field"><label for="ed-fim">Término</label>
+          <input id="ed-fim" type="date" value="${esc(c.data_fim || "")}"></div>
+        <div class="dlg-foot">
+          <button type="button" class="btn btn-outline" id="ed-cancelar">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="ed-salvar">Salvar alterações</button>
+        </div>
+      </form>`;
+    $("#ed-cancelar").onclick = () => { fecharDetalhe(); abrirDetalhe(id); };
+    $("#form-edicao").onsubmit = (e) => { e.preventDefault(); salvarEdicao(c); };
+  }
+
+  function erroEdicao(msg) {
+    const caixa = $("#edicao-erro");
+    caixa.textContent = msg;
+    caixa.hidden = false;
+  }
+
+  async function salvarEdicao(c) {
+    const titulo = $("#ed-titulo").value.trim();
+    const inicio = $("#ed-inicio").value;
+    const fim = $("#ed-fim").value;
+    const valor = $("#ed-valor").value;
+
+    if (!titulo) return erroEdicao("Informe o título do contrato.");
+    if (!inicio) return erroEdicao("Informe a data de início.");
+    if (fim && fim < inicio) return erroEdicao("A data de término não pode ser anterior ao início.");
+    if (valor !== "" && Number(valor) < 0) return erroEdicao("O valor total não pode ser negativo.");
+
+    const botao = $("#ed-salvar");
+    botao.disabled = true;
+    try {
+      await api(`/contratos/${c.id}`, {
+        metodo: "PUT",
+        corpo: {
+          titulo,
+          tipo_contrato: $("#ed-tipo").value.trim() || null,
+          valor_total: valor === "" ? null : Number(valor),
+          data_inicio: inicio,
+          data_fim: fim || null,
+        },
+      });
+      toast(`Contrato ${c.numero} atualizado.`, "sucesso");
+      fecharDetalhe();
+      await carregar();
+      abrirDetalhe(c.id);
+    } catch (err) {
+      erroEdicao(err.message);
+      botao.disabled = false;
     }
   }
 
@@ -636,6 +705,7 @@
       <div class="dlg-sec"><h4>Histórico de status</h4>${listaHistorico}</div>
       <div class="dlg-foot">
         <button class="btn btn-danger-outline" data-acao="excluir" data-id="${c.id}">Excluir</button>
+        <button class="btn btn-outline" data-acao="editar" data-id="${c.id}">Editar</button>
         ${acaoAnalisar}
         ${acaoVerificar}
       </div>`;

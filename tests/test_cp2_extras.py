@@ -1,5 +1,6 @@
 from datetime import date
 
+import pytest
 
 from api.extensions import db
 from api.models import (
@@ -86,3 +87,59 @@ def test_swagger_documenta_todos_os_recursos(cliente_api):
     for rota in ["/aditivos", "/aditivos/{id}", "/historico-status", "/usuarios",
                  "/usuarios/{id}", "/clientes/{id}", "/clausulas/{id}"]:
         assert rota in paths
+
+
+def _contrato_para_editar(cliente_api):
+    _, cabecalho = autenticar(cliente_api, "edicao@example.com")
+    cliente = cliente_api.post("/clientes", json={"nome": "Cliente"}, headers=cabecalho).json
+    contrato = cliente_api.post(
+        "/contratos",
+        json={
+            "numero": "CT-E1",
+            "titulo": "Original",
+            "cliente_id": cliente["id"],
+            "data_inicio": "2026-01-01",
+            "data_fim": "2026-12-31",
+            "valor_total": 1000,
+        },
+        headers=cabecalho,
+    ).json
+    return cabecalho, contrato
+
+
+def test_put_contrato_atualiza_campos_e_converte_valor(cliente_api):
+    cabecalho, contrato = _contrato_para_editar(cliente_api)
+
+    resposta = cliente_api.put(
+        f"/contratos/{contrato['id']}",
+        json={"titulo": "Novo título", "valor_total": "2500.50", "data_fim": None},
+        headers=cabecalho,
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json["titulo"] == "Novo título"
+    assert resposta.json["valor_total"] == 2500.5
+    assert resposta.json["data_fim"] is None
+
+
+@pytest.mark.parametrize(
+    "corpo, mensagem",
+    [
+        ({"valor_total": -1}, "O valor total não pode ser negativo."),
+        ({"valor_total": "abc"}, "Valor total inválido."),
+        ({"data_fim": "2025-01-01"}, "A data de término não pode ser anterior ao início."),
+        ({"data_inicio": "01/02/2026"}, "Datas devem usar o formato YYYY-MM-DD."),
+    ],
+)
+def test_put_contrato_rejeita_dados_invalidos_e_nao_altera(cliente_api, corpo, mensagem):
+    cabecalho, contrato = _contrato_para_editar(cliente_api)
+
+    resposta = cliente_api.put(
+        f"/contratos/{contrato['id']}", json=corpo, headers=cabecalho
+    )
+
+    assert resposta.status_code == 400
+    assert resposta.json["erro"] == mensagem
+    atual = cliente_api.get(f"/contratos/{contrato['id']}", headers=cabecalho).json
+    assert atual["valor_total"] == 1000
+    assert atual["data_fim"] == "2026-12-31"

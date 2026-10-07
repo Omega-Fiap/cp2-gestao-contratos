@@ -69,7 +69,22 @@ Os testes usam SQLite em memória (`tests/conftest.py` cria a aplicação com `c
 
 ### Limites atuais e apresentação
 
-O dashboard agrega carteira, vencimentos e a contagem de cláusulas de alto impacto (considera a correção feita na revisão e ignora as descartadas). Ele carrega apenas os 100 contratos mais recentes para as tabelas; totais e gráfico por tipo vêm de `/dashboard/resumo`. A análise envia somente descrições de cláusulas, bloqueia padrões comuns de dados pessoais e valida a resposta; isso não substitui revisão jurídica. O resultado deve ser conferido no contrato original. O link do Trello informado pelo grupo fica na seção final; confirme e atualize o quadro antes da apresentação.
+O dashboard agrega carteira, vencimentos e a contagem de cláusulas de alto impacto (considera a correção feita na revisão e ignora as descartadas). Ele carrega apenas os 100 contratos mais recentes para as tabelas; totais e gráfico por tipo vêm de `/dashboard/resumo`. O contrato pode ser editado pela tela de detalhe (`PUT /contratos/{id}`). A análise envia somente descrições de cláusulas, bloqueia padrões comuns de dados pessoais e valida a resposta; isso não substitui revisão jurídica. O resultado deve ser conferido no contrato original. O link do Trello informado pelo grupo fica na seção final; confirme e atualize o quadro antes da apresentação.
+
+### Evolução em relação à versão inicial (CP1)
+
+Comparação com o commit `f3b6ccd` (04/10), anterior às mudanças do CP2.
+
+| Área | Versão inicial | CP2 |
+|---|---|---|
+| Segurança | Qualquer usuário logado via todos os contratos; o papel podia ser definido no cadastro; `debug=True` em `0.0.0.0` | Isolamento por usuário (dado de outro usuário responde 404), autocadastro sempre como `usuario`, `debug` só com `FLASK_DEBUG=1` |
+| Backend | Um único `api/app.py` | Pacote em camadas (rotas, serviços, modelos), erros em JSON padronizado e validações (valor, datas, tamanho de texto) |
+| API | Listagens completas | Paginação, filtros e `GET /dashboard/resumo` com agregações em SQL |
+| Dashboard | Indicadores e gráficos calculados no navegador | Totais vindos do backend, alertas de vencimento, cláusulas de alto impacto e edição do contrato |
+| Banco | Tabelas básicas | Dono do contrato obrigatório, chave única de cliente, índices, FKs com cascade e tabelas da análise (migrações em `database/migrations`) |
+| LLM | Não havia | Análise de cláusulas com Gemini, saída validada e revisão pelo gestor |
+| Documentação | README | README atualizado e Swagger OpenAPI 3 com todas as rotas (a especificação não estava versionada) |
+| Testes | Não havia | 38 testes (isolamento entre usuários, autenticação, validações, paginação, edição de contrato, IA simulada) |
 
 ## Nome do projeto
 
@@ -83,7 +98,7 @@ O **Gestor de Contratos** é um sistema desenvolvido para centralizar o cadastro
 
 A solução possui uma interface web e uma API REST desenvolvida em **Python com Flask**. No desenvolvimento local, o backend usa PostgreSQL configurado por variáveis de ambiente; o proxy Flask serve o frontend e encaminha as chamadas para a API.
 
-Além do gerenciamento dos contratos, o backend do sistema possui um **modelo de Inteligência Artificial** responsável por analisar as cláusulas contratuais e estimar o **risco e o impacto que o contrato pode representar para a empresa contratante**.
+Além do gerenciamento dos contratos, o sistema usa uma **LLM (Gemini)** para destacar, nas cláusulas contratuais, as obrigações com **impacto financeiro** para a empresa contratante, sempre com revisão do gestor.
 
 A solução integra gerenciamento contratual, banco de dados e análise textual com LLM em uma única aplicação.
 
@@ -113,11 +128,9 @@ Além disso, a análise manual de todas as cláusulas de um contrato pode ser de
 
 A solução proposta é um **sistema web de gestão de contratos** que reúne funcionalidades de gerenciamento e análise contratual.
 
-O usuário acessa o sistema por meio da interface web. As ações realizadas são processadas pelo backend desenvolvido em Flask.
+O usuário acessa o sistema pela interface web. As páginas chamam `/api/...` no servidor do frontend, que encaminha a requisição para a API REST Flask. A API valida os dados, aplica as regras de negócio e se comunica com o banco PostgreSQL.
 
-Quando é necessário consultar ou alterar informações persistidas, o backend realiza requisições HTTP para a API REST Flask. A API processa essas requisições e se comunica com o banco PostgreSQL.
-
-O backend também possui um modelo de Inteligência Artificial responsável por analisar as cláusulas do contrato e gerar uma **estimativa de risco/impacto para a empresa contratante**, auxiliando na avaliação do contrato antes da tomada de decisão.
+Quando o gestor pede a análise de um contrato, a API envia o texto das cláusulas ao Gemini, valida a resposta e a guarda para revisão, apoiando a avaliação do contrato antes da tomada de decisão.
 
 ### Fluxo simplificado
 
@@ -172,20 +185,15 @@ para a empresa contratante        PostgreSQL
 
 # Arquitetura inicial
 
-A arquitetura do projeto é dividida em quatro componentes principais.
+A arquitetura do projeto é dividida em quatro componentes principais. Veja a seção "Estrutura do projeto" para a organização das pastas.
 
 ## 1. Interface do sistema
 
 É o ponto de acesso do usuário ao Gestor de Contratos. Por meio dela, o cliente pode utilizar as funcionalidades de cadastro, consulta e gerenciamento disponibilizadas pelo sistema.
 
-## 2. Backend Flask
+## 2. Servidor do frontend
 
-O backend recebe as ações realizadas no sistema e contém as regras de negócio da aplicação.
-
-Ele possui duas responsabilidades principais:
-
-- comunicar-se com a API REST;
-- enviar as cláusulas do contrato para o modelo de Inteligência Artificial e processar a estimativa de risco/impacto obtida.
+O `frontend/servidor.py` serve as páginas e encaminha as chamadas `/api/...` para a API, de modo que o navegador fala com uma única origem (sem problemas de CORS).
 
 ## 3. API REST Flask
 
@@ -199,14 +207,14 @@ O banco PostgreSQL persiste as informações. A comunicação com a API é feita
 
 ```mermaid
 flowchart TD
-    A[Cliente / Usuário] --> B[Sistema Gestor de Contratos]
-    B --> C[Backend Python + Flask]
-    C --> D[Modelo de IA]
-    D --> E[Análise das cláusulas]
-    E --> F[Estimativa de risco/impacto para a empresa contratante]
-    C --> G[API REST Flask]
-    G --> H[SQLAlchemy]
-    H --> I[PostgreSQL]
+    A[Gestor] --> B[Frontend HTML/JS]
+    B --> C[Servidor do frontend + proxy /api]
+    C --> D[API Flask: rotas -> serviços -> modelos]
+    D --> E[SQLAlchemy]
+    E --> F[PostgreSQL]
+    D --> G[Gemini]
+    G --> H[Achados de impacto financeiro]
+    H --> D
 ```
 
 ---
@@ -246,35 +254,60 @@ As principais tabelas são:
 
 # Modelo de Inteligência Artificial
 
-O backend do Gestor de Contratos possui um modelo de Inteligência Artificial responsável por auxiliar na **análise das cláusulas contratuais**.
+A LLM apoia o gestor a **encontrar, em um contrato, as cláusulas com impacto financeiro** (por exemplo, multa de rescisão de 20% ou reajuste anual). Ela não decide nada sozinha: o gestor confere cada achado e confirma, corrige ou descarta.
 
-O objetivo do modelo é analisar as cláusulas presentes no contrato e, a partir dessa análise, estimar o **risco e o possível impacto do contrato para a empresa contratante**.
+| Item | Como funciona neste projeto |
+|---|---|
+| **Serviço e modelo** | API REST do Google **Gemini** (`generateContent`). O modelo vem de `GEMINI_MODEL` (padrão no código: `gemini-3.8-flash`). A chave fica em `GEMINI_API_KEY`. |
+| **Finalidade** | Classificar o texto das cláusulas: tipo da obrigação, valor ou percentual e nível de impacto (baixo, médio ou alto), citando o trecho original. |
+| **Dados enviados** | Somente a **descrição das cláusulas** do contrato, juntadas em um texto (até 30.000 caracteres). Não vão cliente, número do contrato, valores cadastrados nem dados do usuário. |
+| **Resposta obtida** | JSON com a lista `clausulas`, cada item com `tipo`, `valor_ou_percentual`, `impacto` e `trecho_original`. O formato é imposto por um schema na própria requisição, com temperatura 0,1. |
+| **Uso pela aplicação** | O resultado é validado e gravado em `analise_contrato` e `resultado_analise_clausula`, junto com o modelo e a versão do prompt. O dashboard soma os achados de alto impacto (usando o impacto corrigido, se houver, e ignorando os descartados). O gestor revisa cada achado na tela do contrato. |
 
-Essa funcionalidade busca apoiar a avaliação contratual, facilitando a identificação de condições que merecem maior atenção antes da contratação.
-
-### Fluxo da análise
+### Fluxo
 
 ```text
-Contrato
-   |
-   v
-Cláusulas do contrato
-   |
-   v
-Backend Flask
-   |
-   v
-Modelo de IA
-   |
-   v
-Análise das cláusulas
-   |
-   v
-Estimativa de risco/impacto
-   |
-   v
-Resultado utilizado pelo sistema
+Gestor clica em "Analisar com IA"
+  -> POST /contratos/{id}/analisar
+  -> serviço junta as descrições das cláusulas e calcula o hash SHA-256 do texto
+  -> hash igual ao da última análise? devolve a análise salva (sem chamar a LLM)
+  -> bloqueia texto com CPF, CNPJ, e-mail ou telefone
+  -> chama o Gemini com saída JSON estruturada (até 3 tentativas)
+  -> descarta achados cujo trecho_original não existe no texto enviado
+  -> grava a análise e devolve os achados
+  -> gestor confirma, corrige ou descarta: PUT /contratos/{id}/analise/{achado}
 ```
+
+### Cuidados com segurança e dados sensíveis
+
+- **Entrada tratada como dado:** o texto vai dentro de um JSON e a instrução de sistema manda ignorar qualquer ordem escrita nele (mitiga injeção de prompt).
+- **Dados pessoais:** padrões comuns de CPF, CNPJ, e-mail e telefone **bloqueiam** a análise (erro 422) antes de qualquer envio ao provedor.
+- **Anti-invenção:** achados com `trecho_original` que não aparece literalmente no texto são descartados. O schema também restringe o impacto aos três valores válidos.
+- **Revisão humana:** o resultado original da IA fica separado da correção do gestor (`*_corrigido`, `status_revisao`).
+- **Segredos:** a chave só existe em variável de ambiente. Erros do provedor viram mensagens genéricas, sem expor a chave nem a resposta bruta.
+- **Custo e limite:** a análise é reaproveitada pelo hash do texto, e há timeout de 20 s e no máximo 3 tentativas (com espera) em caso de 429, 5xx ou falha de rede.
+
+### Limitações identificadas
+
+- O bloqueio de dados pessoais cobre **padrões** (CPF, CNPJ, e-mail, telefone). **Nomes de pessoas não são detectados**: quem cadastra deve anonimizar o texto.
+- A LLM pode errar o tipo ou o impacto de uma cláusula. Por isso existe a revisão, e o resultado **não substitui revisão jurídica**.
+- A análise depende da disponibilidade, da cota e do modelo configurado no Gemini. Os testes simulam o provedor, então não comprovam a chamada real.
+- Só o texto das cláusulas é analisado. Valores cadastrados, aditivos e datas não entram na análise.
+
+---
+
+# Otimizações da API
+
+| Otimização | Onde | Efeito |
+|---|---|---|
+| **Paginação** | `GET /contratos?page=&per_page=` (máx. 100 por página) | Resposta limitada e com `pagination.total/pages`, em vez de listar tudo. |
+| **Filtros no banco** | `status`, `tipo_contrato` e busca `q` (número, título ou cliente) | A filtragem acontece na consulta SQL, não no navegador. |
+| **Agregações em SQL** | `GET /dashboard/resumo` | Totais, valor somado, vencimentos, contagem por tipo e cláusulas de alto impacto saem de `COUNT`/`SUM`/`GROUP BY`, sem trazer as linhas. |
+| **Menos dados no dashboard** | `frontend/public/js/dashboard.js` | Totais e gráfico por tipo vêm do resumo; as tabelas usam só os 100 contratos mais recentes (uma requisição, em vez de percorrer todas as páginas). |
+| **Filtro por contrato** | `?contrato_id=` em cláusulas, aditivos e histórico | O detalhe do contrato busca só os itens daquele contrato. |
+| **Índices** | `contrato.usuario_id` e FKs de cláusula, aditivo e histórico | Aceleram o isolamento por usuário e os filtros por contrato. |
+| **Reaproveitamento da IA** | hash SHA-256 do texto das cláusulas | Texto igual não chama o Gemini de novo: menos custo, latência e consumo de cota. |
+| **Validação e erros** | `services/` + `ErroAplicacao` | Entradas inválidas são recusadas cedo, com resposta JSON padronizada e código HTTP correto. |
 
 ---
 

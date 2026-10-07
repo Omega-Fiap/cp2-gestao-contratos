@@ -1,5 +1,7 @@
 # Auditoria do CP2 – Gestor de Contratos
 
+> **Nota:** esta auditoria é um retrato de antes das correções. Já foram resolvidos: testes isolados em SQLite, validações do `PUT /contratos`, indicador de cláusulas de alto impacto, Swagger completo, README atualizado, dashboard sem baixar todas as páginas, FKs com cascade e commit do CP2. Seguem dependendo do grupo: recriar o schema no RDS, confirmar o modelo Gemini, atualizar o Trello e o push.
+
 Verificação do projeto contra os critérios do Checkpoint 2 (06/10).
 
 ## Problema grave: os testes apagam o banco real

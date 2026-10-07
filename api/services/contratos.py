@@ -7,7 +7,7 @@ from api.services.acesso import cliente_do_usuario, contrato_do_usuario
 from api.utils import agora, data_ou_erro, texto
 
 POR_PAGINA_MAXIMO = 100
-CAMPOS_SIMPLES = ["numero", "titulo", "cliente_id", "tipo_contrato", "valor_total", "status"]
+CAMPOS_SIMPLES = ["numero", "titulo", "cliente_id", "tipo_contrato", "status"]
 
 
 def validar_valor(valor):
@@ -103,7 +103,7 @@ def atualizar(usuario, id, dados):
     if "data_fim" in dados:
         contrato.data_fim = data_ou_erro(dados["data_fim"])
     if "valor_total" in dados:
-        validar_valor(dados["valor_total"])
+        contrato.valor_total = validar_valor(dados["valor_total"])
     validar_periodo(contrato.data_inicio, contrato.data_fim)
 
     contrato.updated_at = agora()
