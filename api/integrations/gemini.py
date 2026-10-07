@@ -15,7 +15,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-MODELO_PADRAO = "gemini-3.8-flash"
+MODELO_PADRAO = "gemini-2.5-flash"
 VERSAO_PROMPT = "1.0.0"
 TIMEOUT_SEGUNDOS = 20
 MAX_TENTATIVAS = 3
@@ -117,12 +117,8 @@ def _criar_requisicao(texto: str, chave: str, modelo: str) -> Request:
         ],
         "generationConfig": {
             "temperature": 0.1,
-            "responseFormat": {
-                "text": {
-                    "mimeType": "APPLICATION_JSON",
-                    "schema": SCHEMA_RESPOSTA,
-                }
-            },
+            "responseMimeType": "application/json",
+            "responseJsonSchema": SCHEMA_RESPOSTA,
         },
     }
     return Request(
@@ -206,7 +202,7 @@ def analisar_clausulas(texto: str) -> dict[str, Any]:
     """Retorna cláusulas validadas e metadados, sem persistir nem integrar ao Flask.
 
     Configure ``GEMINI_API_KEY`` no ambiente. ``GEMINI_MODEL`` é opcional;
-    por padrão é usado ``gemini-3.8-flash``. Nomes e dados pessoais devem ser
+    por padrão é usado ``gemini-2.5-flash``. Nomes e dados pessoais devem ser
     removidos pelo chamador: padrões comuns de CPF, CNPJ, e-mail e telefone
     são rejeitados antes de qualquer requisição.
     """

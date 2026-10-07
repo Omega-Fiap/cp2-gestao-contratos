@@ -258,7 +258,7 @@ A LLM apoia o gestor a **encontrar, em um contrato, as cláusulas com impacto fi
 
 | Item | Como funciona neste projeto |
 |---|---|
-| **Serviço e modelo** | API REST do Google **Gemini** (`generateContent`). O modelo vem de `GEMINI_MODEL` (padrão no código: `gemini-3.8-flash`). A chave fica em `GEMINI_API_KEY`. |
+| **Serviço e modelo** | API REST do Google **Gemini** (`generateContent`). O modelo vem de `GEMINI_MODEL` (padrão no código: `gemini-2.5-flash`, testado). Modelos mais novos podem responder 503 em horários de alta demanda, e o código tenta 3 vezes antes de avisar o usuário. A chave fica em `GEMINI_API_KEY`. |
 | **Finalidade** | Classificar o texto das cláusulas: tipo da obrigação, valor ou percentual e nível de impacto (baixo, médio ou alto), citando o trecho original. |
 | **Dados enviados** | Somente a **descrição das cláusulas** do contrato, juntadas em um texto (até 30.000 caracteres). Não vão cliente, número do contrato, valores cadastrados nem dados do usuário. |
 | **Resposta obtida** | JSON com a lista `clausulas`, cada item com `tipo`, `valor_ou_percentual`, `impacto` e `trecho_original`. O formato é imposto por um schema na própria requisição, com temperatura 0,1. |

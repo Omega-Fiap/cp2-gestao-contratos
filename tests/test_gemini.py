@@ -62,9 +62,9 @@ def test_retorna_achados_validos_e_metadados(monkeypatch):
 
     corpo = json.loads(requisicoes[0][0].data)
     assert "systemInstruction" in corpo
-    formato = corpo["generationConfig"]["responseFormat"]["text"]
-    assert formato["mimeType"] == "APPLICATION_JSON"
-    assert formato["schema"] == modulo.SCHEMA_RESPOSTA
+    config = corpo["generationConfig"]
+    assert config["responseMimeType"] == "application/json"
+    assert config["responseJsonSchema"] == modulo.SCHEMA_RESPOSTA
     assert corpo["contents"][0]["parts"][0]["text"].find(TEXTO) >= 0
 
 
