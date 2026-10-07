@@ -5,6 +5,11 @@
   const lista = $("lista-clausulas");
   const erroBox = $("erro");
 
+  if (!Auth.token()) {
+    location.replace("login.html");
+    return;
+  }
+
   function mostrarErro(msg) {
     erroBox.textContent = msg;
     erroBox.hidden = false;

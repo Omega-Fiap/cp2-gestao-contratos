@@ -2,7 +2,7 @@
 
 (function () {
   const VERIFICADO = "verificado";
-  const S = { contratos: [], clientes: new Map(), aditivos: [], busca: "" };
+  const S = { contratos: [], clientes: new Map(), aditivos: [], resumo: null, busca: "" };
   const charts = {};
   const $ = (s) => document.querySelector(s);
 
@@ -31,14 +31,21 @@
     await carregar();
   }
 
+  // Uma única página (mais recentes): totais e gráfico por tipo vêm de /dashboard/resumo.
+  async function carregarContratosRecentes() {
+    const pagina = await api("/contratos?page=1&per_page=100");
+    return pagina.items;
+  }
+
   async function carregar() {
     try {
-      const [contratos, clientes, aditivos] = await Promise.all([
-        api("/contratos"), api("/clientes"), api("/aditivos"),
+      const [contratos, clientes, aditivos, resumo] = await Promise.all([
+        carregarContratosRecentes(), api("/clientes"), api("/aditivos"), api("/dashboard/resumo"),
       ]);
       S.contratos = contratos;
       S.clientes = new Map(clientes.map((c) => [c.id, c]));
       S.aditivos = aditivos;
+      S.resumo = resumo;
       renderizar();
     } catch (err) {
       toast(err.message, "erro");
@@ -54,28 +61,18 @@
   /* ---------------- KPIs ---------------- */
 
   function renderKpis() {
-    const total = S.contratos.length;
-    const ver = S.contratos.filter(verificado).length;
-    const pend = total - ver;
-    const valor = S.contratos.reduce((soma, c) => soma + (Number(c.valor_total) || 0), 0);
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const limite = new Date(hoje);
-    limite.setDate(limite.getDate() + 30);
-    const vencendo = S.contratos.filter((c) => {
-      if (!c.data_fim) return false;
-      const d = new Date(c.data_fim + "T00:00:00");
-      return d >= hoje && d <= limite;
-    }).length;
-
-    const pct = total ? Math.round((ver / total) * 100) : 0;
+    const resumo = S.resumo;
+    if (!resumo) return;
+    const pct = resumo.total_contratos
+      ? Math.round((resumo.contratos_verificados / resumo.total_contratos) * 100)
+      : 0;
     const itens = [
-      { rotulo: "Total de contratos", valor: total, sub: `${S.aditivos.length} aditivo(s) registrados`, cls: "" },
-      { rotulo: "Aguardando verificação", valor: pend, sub: "Precisam de análise", cls: "warning" },
-      { rotulo: "Verificados", valor: ver, sub: `${pct}% do total`, cls: "success" },
-      { rotulo: "Valor total", valor: moeda(valor), sub: "Soma de todos os contratos", cls: "" },
-      { rotulo: "Vencem em 30 dias", valor: vencendo, sub: "Pelo término do contrato", cls: "danger" },
+      { rotulo: "Total de contratos", valor: resumo.total_contratos, sub: `${resumo.total_aditivos} aditivo(s) registrados`, cls: "" },
+      { rotulo: "Aguardando verificação", valor: resumo.contratos_pendentes, sub: "Precisam de análise", cls: "warning" },
+      { rotulo: "Verificados", valor: resumo.contratos_verificados, sub: `${pct}% do total`, cls: "success" },
+      { rotulo: "Valor total", valor: moeda(resumo.valor_total), sub: "Soma de todos os contratos", cls: "" },
+      { rotulo: "Vencem em 30 dias", valor: resumo.vencendo_em_30_dias, sub: "Pelo término do contrato", cls: "danger" },
+      { rotulo: "Cláusulas de alto impacto", valor: resumo.clausulas_alto_impacto, sub: "Nas análises de IA (sem descartadas)", cls: "danger" },
     ];
 
     $("#kpis").innerHTML = itens.map((i) => `
@@ -115,8 +112,8 @@
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
 
     const primaria = cor("--primary");
-    const ver = S.contratos.filter(verificado).length;
-    const pend = S.contratos.length - ver;
+    const ver = S.resumo.contratos_verificados;
+    const pend = S.resumo.contratos_pendentes;
     const opcoesBase = { responsive: true, maintainAspectRatio: false };
     const compacto = new Intl.NumberFormat("pt-BR", { notation: "compact" });
 
@@ -136,12 +133,12 @@
     });
 
     // 2) Contratos por tipo
-    const porTipo = agrupar(S.contratos, (c) => c.tipo_contrato || "Não informado", () => 1);
+    const porTipo = new Map(S.resumo.contratos_por_tipo.map((t) => [t.tipo, t.total]));
     montarGrafico("g-tipo", {
       type: "bar",
       data: {
         labels: [...porTipo.keys()],
-        datasets: [{ label: "Contratos", data: [...porTipo.values()], backgroundColor: primaria, borderRadius: 6 }],
+        datasets: [{ label: "Contratos", data: [...porTipo.values()], backgroundColor: primaria, borderRadius: 2 }],
       },
       options: {
         ...opcoesBase,
@@ -188,7 +185,7 @@
       type: "bar",
       data: {
         labels: top.map((t) => t[0]),
-        datasets: [{ label: "Valor", data: top.map((t) => t[1]), backgroundColor: cor("--success"), borderRadius: 6 }],
+        datasets: [{ label: "Valor", data: top.map((t) => t[1]), backgroundColor: cor("--success"), borderRadius: 2 }],
       },
       options: {
         ...opcoesBase,
@@ -223,8 +220,8 @@
       .filter(verificado)
       .sort((a, b) => String(b.verificado_em || "").localeCompare(String(a.verificado_em || "")));
 
-    $("#cont-pend").textContent = S.contratos.filter((c) => !verificado(c)).length;
-    $("#cont-ver").textContent = S.contratos.filter(verificado).length;
+    $("#cont-pend").textContent = S.resumo.contratos_pendentes;
+    $("#cont-ver").textContent = S.resumo.contratos_verificados;
 
     $("#tb-pendentes").innerHTML = pendentes.length
       ? pendentes.map(linhaPendente).join("")
@@ -284,7 +281,19 @@
     const acao = botao.dataset.acao;
     if (acao === "ver") abrirDetalhe(id);
     if (acao === "verificar") verificar(id, botao);
+    if (acao === "analisar") analisar(id, botao);
     if (acao === "excluir") excluir(id);
+  });
+
+  document.addEventListener("click", (e) => {
+    const botao = e.target.closest("[data-review-action]");
+    if (!botao) return;
+    if (botao.dataset.reviewAction === "corrigir-toggle") {
+      const form = botao.closest("li").querySelector(".review-form");
+      form.hidden = !form.hidden;
+      return;
+    }
+    revisarAnalise(botao);
   });
 
   async function verificar(id, botao) {
@@ -357,8 +366,226 @@
         api(`/historico-status?contrato_id=${id}`),
       ]);
       $("#detalhe-corpo").innerHTML = htmlDetalhe(c, clausulas, aditivos, historico);
+      try {
+        renderizarAnalise(await api(`/contratos/${id}/analise`), id);
+      } catch (err) {
+        if (err.status !== 404) throw err;
+      }
     } catch (err) {
       $("#detalhe-corpo").innerHTML = `<div class="alert alert-erro">${esc(err.message)}</div>`;
+    }
+  }
+
+  async function analisar(id, botao) {
+    botao.disabled = true;
+    const textoOriginal = botao.textContent;
+    botao.textContent = "Analisando…";
+    try {
+      const resultado = await api(`/contratos/${id}/analisar`, { metodo: "POST" });
+      renderizarAnalise(resultado, id);
+      toast(resultado.reutilizada ? "Análise salva reutilizada." : "Análise concluída.", "sucesso");
+    } catch (err) {
+      if (err.status === 401) {
+        toast("Sessão expirada. Faça login novamente.", "erro");
+        setTimeout(Auth.sair, 1500);
+        return;
+      }
+      toast(err.message, "erro");
+    } finally {
+      botao.disabled = false;
+      botao.textContent = textoOriginal;
+    }
+  }
+
+  /* ---------------- Análise com IA ---------------- */
+
+  const ROTULO_REVISAO = {
+    pendente: "Aguardando revisão",
+    confirmada: "Confirmada",
+    corrigida: "Corrigida",
+    descartada: "Descartada",
+  };
+
+  const semAcento = (texto) => String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  // Mostra o trecho do contrato e destaca o valor encontrado. Só usa nós de texto (nunca innerHTML).
+  function preencherTrecho(elemento, trecho, valor) {
+    const texto = String(trecho || "");
+    const termo = valor ? String(valor).trim() : "";
+    const posicao = termo ? texto.indexOf(termo) : -1;
+    if (posicao === -1) {
+      elemento.textContent = `“${texto}”`;
+      return;
+    }
+    const marca = document.createElement("mark");
+    marca.textContent = termo;
+    elemento.append(
+      `“${texto.slice(0, posicao)}`,
+      marca,
+      `${texto.slice(posicao + termo.length)}”`,
+    );
+  }
+
+  function renderizarAnalise(resultado, contratoId) {
+    const corpo = $("#detalhe-corpo");
+    corpo.querySelector("[data-analise]")?.remove();
+
+    const secao = document.createElement("section");
+    secao.className = "dlg-sec analise";
+    secao.dataset.analise = "";
+
+    const titulo = document.createElement("h4");
+    titulo.textContent = "Análise de cláusulas com IA";
+    const aviso = document.createElement("p");
+    aviso.className = "analise-aviso";
+    aviso.textContent = "Análise automática. Confira no contrato original.";
+    const metadados = document.createElement("p");
+    metadados.className = "analise-meta";
+    metadados.textContent = `Modelo ${resultado.modelo} · Prompt ${resultado.versao_prompt}`;
+    secao.append(titulo, aviso, metadados);
+
+    if (!resultado.clausulas.length) {
+      const vazio = document.createElement("p");
+      vazio.className = "muted";
+      vazio.textContent = "Nenhum ponto de impacto financeiro foi identificado.";
+      secao.appendChild(vazio);
+    } else {
+      const lista = document.createElement("ul");
+      lista.className = "lista-simples";
+
+      resultado.clausulas.forEach((clausula) => {
+        const tipoAtual = clausula.tipo_corrigido || clausula.tipo;
+        const impactoAtual = clausula.impacto_corrigido || clausula.impacto;
+        const valorAtual = clausula.valor_corrigido ?? clausula.valor_ou_percentual;
+
+        const item = document.createElement("li");
+        item.className = "analise-item";
+        item.dataset.resultadoId = clausula.id;
+        item.dataset.status = clausula.status_revisao;
+
+        const topo = document.createElement("div");
+        topo.className = "analise-topo";
+        const tipo = document.createElement("strong");
+        tipo.textContent = tipoAtual;
+        const impacto = document.createElement("span");
+        impacto.className = `badge impacto-${semAcento(impactoAtual)}`;
+        impacto.textContent = `Impacto ${impactoAtual}`;
+        const estado = document.createElement("span");
+        estado.className = "badge estado-revisao";
+        estado.textContent = ROTULO_REVISAO[clausula.status_revisao] || clausula.status_revisao;
+        topo.append(tipo, impacto, estado);
+        item.appendChild(topo);
+
+        if (valorAtual) {
+          const valor = document.createElement("div");
+          valor.className = "analise-valor";
+          valor.textContent = `Valor ou percentual: ${valorAtual}`;
+          item.appendChild(valor);
+        }
+
+        const trecho = document.createElement("blockquote");
+        trecho.className = "analise-trecho";
+        preencherTrecho(trecho, clausula.trecho_original, valorAtual);
+        item.appendChild(trecho);
+
+        const controles = document.createElement("div");
+        controles.className = "acoes";
+        controles.append(
+          botaoRevisao("Confirmar", "confirmar", contratoId, clausula.id),
+          botaoRevisao("Descartar", "descartar", contratoId, clausula.id),
+          botaoRevisao("Corrigir", "corrigir-toggle", contratoId, clausula.id),
+        );
+
+        const formulario = document.createElement("div");
+        formulario.className = "review-form";
+        formulario.hidden = true;
+        formulario.append(
+          campoRevisao("Tipo", "tipo", tipoAtual),
+          campoRevisao("Valor ou percentual", "valor_ou_percentual", valorAtual),
+          campoImpacto(impactoAtual),
+          botaoRevisao("Salvar correção", "corrigir", contratoId, clausula.id),
+        );
+
+        item.append(controles, formulario);
+        lista.appendChild(item);
+      });
+      secao.appendChild(lista);
+    }
+
+    // A análise entra antes dos botões de ação do contrato, não depois.
+    const rodape = corpo.querySelector(".dlg-foot");
+    if (rodape) corpo.insertBefore(secao, rodape);
+    else corpo.appendChild(secao);
+  }
+
+  function botaoRevisao(rotulo, acao, contratoId, resultadoId) {
+    const botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "btn btn-outline btn-sm";
+    botao.dataset.reviewAction = acao;
+    botao.dataset.contractId = contratoId;
+    botao.dataset.resultId = resultadoId;
+    botao.textContent = rotulo;
+    return botao;
+  }
+
+  function campoRevisao(rotulo, nome, valor) {
+    const label = document.createElement("label");
+    label.className = "field";
+    label.textContent = rotulo;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.dataset.reviewField = nome;
+    input.value = valor || "";
+    label.appendChild(input);
+    return label;
+  }
+
+  function campoImpacto(valor) {
+    const label = document.createElement("label");
+    label.className = "field";
+    label.textContent = "Impacto";
+    const select = document.createElement("select");
+    select.dataset.reviewField = "impacto";
+    ["baixo", "médio", "alto"].forEach((opcao) => {
+      const option = document.createElement("option");
+      option.value = opcao;
+      option.textContent = opcao;
+      select.appendChild(option);
+    });
+    select.value = valor;
+    label.appendChild(select);
+    return label;
+  }
+
+  async function revisarAnalise(botao) {
+    const contratoId = Number(botao.dataset.contractId);
+    const resultadoId = Number(botao.dataset.resultId);
+    const acaoBotao = botao.dataset.reviewAction;
+    const corpo = { acao: acaoBotao };
+    if (acaoBotao === "corrigir") {
+      const formulario = botao.closest(".review-form");
+      formulario.querySelectorAll("[data-review-field]").forEach((campo) => {
+        corpo[campo.dataset.reviewField] = campo.value.trim();
+      });
+    }
+
+    botao.disabled = true;
+    try {
+      await api(`/contratos/${contratoId}/analise/${resultadoId}`, {
+        metodo: "PUT",
+        corpo,
+      });
+      renderizarAnalise(await api(`/contratos/${contratoId}/analise`), contratoId);
+      toast("Revisão salva.", "sucesso");
+    } catch (err) {
+      if (err.status === 401) {
+        toast("Sessão expirada. Faça login novamente.", "erro");
+        setTimeout(Auth.sair, 1500);
+        return;
+      }
+      toast(err.message, "erro");
+      botao.disabled = false;
     }
   }
 
@@ -389,9 +616,12 @@
 
     const acaoVerificar = verificado(c) ? "" :
       `<button class="btn btn-success" data-acao="verificar" data-id="${c.id}">Verificar contrato</button>`;
+    const acaoAnalisar = clausulas.length
+      ? `<button class="btn btn-outline" data-acao="analisar" data-id="${c.id}">Analisar com IA</button>`
+      : "";
 
     return `
-      <h3 style="margin-bottom:.2rem">${esc(c.titulo)}</h3>
+      <h3 class="detalhe-titulo">${esc(c.titulo)}</h3>
       ${banner}
       <dl class="dl-grid">
         <div><dt>Cliente</dt><dd>${esc(nomeCliente(c))}</dd></div>
@@ -406,6 +636,7 @@
       <div class="dlg-sec"><h4>Histórico de status</h4>${listaHistorico}</div>
       <div class="dlg-foot">
         <button class="btn btn-danger-outline" data-acao="excluir" data-id="${c.id}">Excluir</button>
+        ${acaoAnalisar}
         ${acaoVerificar}
       </div>`;
   }

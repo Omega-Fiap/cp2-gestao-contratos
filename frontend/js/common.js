@@ -2,8 +2,8 @@
    Gestor de Contratos - utilitários compartilhados
    ============================================================ */
 
-// Endereço da API Flask. Altere aqui se rodar em outra porta/host.
-const API_URL = "http://127.0.0.1:5000";
+// A ponte local encaminha /api/... para a API Flask configurada no servidor.
+const API_URL = "/api";
 
 /* ---------------- Tema claro / escuro ---------------- */
 
@@ -71,6 +71,7 @@ async function api(rota, { metodo = "GET", corpo } = {}) {
   if (!resposta.ok) {
     const err = new Error((dados && dados.erro) || `Erro ${resposta.status}`);
     err.status = resposta.status;
+    if (resposta.status === 401 && token) Auth.sair();
     throw err;
   }
   return dados;

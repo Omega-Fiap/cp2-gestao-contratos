@@ -3,32 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Enviar formulário · Gestor de Contratos</title>
-  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Novo contrato · Omega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css?v=20261006-3">
 </head>
 <body>
-  <header class="navbar">
-    <div class="nav-inner">
-      <a class="brand" href="index.html"><span class="brand-mark">GC</span> Gestor de Contratos</a>
-      <div class="nav-actions">
-        <span class="theme-slot"></span>
-        <a class="btn btn-ghost" href="index.html">Voltar</a>
-        <a class="btn btn-outline" href="login.html">Login</a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">Ω</span><span>Omega <small>Gestão de contratos</small></span></a>
+      <div class="topbar-actions">
+        <span class="theme-slot" hidden></span>
+        <a class="btn btn-ghost btn-sm" href="dashboard.html">Voltar ao painel</a>
       </div>
     </div>
   </header>
 
   <main class="form-wrap">
     <div id="area-form">
-      <h1>Envie seu formulário</h1>
-      <p class="muted">Preencha os dados abaixo. Nossa equipe receberá o contrato e fará a verificação.</p>
+      <h1>Novo contrato</h1>
+      <p class="muted">Preencha os dados para registrar o contrato na sua carteira.</p>
 
       <div class="alert alert-erro" id="erro" hidden></div>
 
       <form id="form-contrato" novalidate>
         <section class="card">
-          <h2>Seus dados</h2>
+          <h2>Dados do cliente</h2>
           <div class="grid-2">
             <div class="field">
               <label for="c-nome">Nome / Razão social <span class="req">*</span></label>
@@ -92,25 +93,25 @@
         </section>
 
         <section class="card">
-          <h2>Cláusulas <span class="muted" style="font-weight:400">(opcional)</span></h2>
+          <h2>Cláusulas <span class="opcional">(opcional)</span></h2>
           <div id="lista-clausulas"></div>
           <button type="button" class="btn btn-outline btn-sm" id="btn-add-clausula">+ Adicionar cláusula</button>
         </section>
 
-        <div style="margin-top:1.2rem">
-          <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-enviar">Enviar formulário</button>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-enviar">Registrar contrato</button>
         </div>
       </form>
     </div>
 
     <section class="card sucesso" id="area-sucesso" hidden>
       <div class="check">✓</div>
-      <h1>Formulário enviado!</h1>
-      <p class="muted">Recebemos o seu contrato. Guarde o número abaixo para acompanhamento.</p>
+      <h1>Contrato registrado</h1>
+      <p class="muted">Recebemos o contrato. Guarde o número abaixo para acompanhamento.</p>
       <div class="numero" id="numero-contrato"></div>
-      <div>
-        <button class="btn btn-primary" id="btn-outro">Enviar outro formulário</button>
-        <a class="btn btn-outline" href="index.html">Voltar ao início</a>
+      <div class="acoes-sucesso">
+        <button class="btn btn-primary" id="btn-outro">Registrar outro contrato</button>
+        <a class="btn btn-outline" href="dashboard.html">Ir para o painel</a>
       </div>
     </section>
   </main>

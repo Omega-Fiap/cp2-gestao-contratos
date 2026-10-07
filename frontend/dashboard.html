@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard · Gestor de Contratos</title>
-  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Painel · Omega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css?v=20261006-3">
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="index.html"><span class="brand-mark">GC</span> Gestor de Contratos</a>
+      <a class="brand" href="index.html"><span class="brand-mark">Ω</span><span>Omega <small>Gestão de contratos</small></span></a>
       <div class="topbar-actions">
         <span class="user-chip" id="user-chip"></span>
-        <span class="theme-slot"></span>
+        <span class="theme-slot" hidden></span>
         <button class="btn btn-ghost btn-sm" id="btn-sair">Sair</button>
       </div>
     </div>
@@ -23,11 +25,12 @@
     <div class="dash-head">
       <div>
         <h1>Painel de contratos</h1>
-        <p class="muted" style="margin:.2rem 0 0">Verifique, acompanhe e gerencie os contratos recebidos.</p>
+        <p class="dash-sub">Verifique, acompanhe e gerencie os contratos recebidos.</p>
       </div>
       <div class="dash-tools">
         <input type="search" id="busca" placeholder="Buscar por número, título, cliente…" aria-label="Buscar contratos">
         <button class="btn btn-outline btn-sm" id="btn-atualizar">Atualizar</button>
+        <a class="btn btn-primary btn-sm" id="btn-novo" href="formulario.html">Novo contrato</a>
       </div>
     </div>
 

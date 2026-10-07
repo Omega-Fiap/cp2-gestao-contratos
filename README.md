@@ -1,5 +1,47 @@
 # Gestor de Contratos
 
+## Execução atual do CP2
+
+O sistema local tem três componentes: API Flask/PostgreSQL (`api/app.py`), proxy same-origin e servidor das páginas (`backend/servidor.py`) e frontend HTML/CSS/JavaScript (`frontend/`). A integração externa de análise textual usa a API do Gemini quando `GEMINI_API_KEY` está configurada. Este repositório não contém prova de deploy AWS ativo; as referências antigas a AWS abaixo são histórico do desenho inicial, não instruções de execução local.
+
+### Preparar o ambiente
+
+Na raiz do repositório, crie um ambiente virtual e instale `requirements.txt`:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+Copie os exemplos de ambiente para `.env` e preencha os dados do PostgreSQL e uma chave de assinatura própria. Configure `GEMINI_API_KEY` somente se for demonstrar análise real; os testes simulam o provedor e não precisam dessa chave.
+
+Antes de apontar para um banco existente, leia e aplique manualmente, na ordem, as migrações `api/migrations/001_cliente_usuario_id.sql` a `005_fk_cascade_e_indices.sql`. A migração 004 interrompe a operação se houver contratos legados sem proprietário: atribua-os explicitamente antes de repetir. As migrações não foram executadas neste ambiente nem contra o RDS.
+
+Abra dois terminais na raiz:
+
+```bash
+python -m api.app
+```
+
+```bash
+python -m backend.servidor
+```
+
+A aplicação é servida em `http://127.0.0.1:8000`; a API em `http://127.0.0.1:5000`, encaminhada pelo frontend em `/api`. Swagger UI: `http://127.0.0.1:5000/swagger/`.
+
+### Testes
+
+```bash
+pytest -q
+```
+
+Os testes usam SQLite em memória (`tests/conftest.py` define `DATABASE_URL=sqlite://` antes de importar a API, então o banco real nunca é tocado) e simulam chamadas ao Gemini. Eles não certificam a conexão com RDS nem a disponibilidade/quota do provedor.
+
+### Limites atuais e apresentação
+
+O dashboard agrega carteira, vencimentos e a contagem de cláusulas de alto impacto (considera a correção feita na revisão e ignora as descartadas). Ele carrega apenas os 100 contratos mais recentes para as tabelas; totais e gráfico por tipo vêm de `/dashboard/resumo`. A análise envia somente descrições de cláusulas, bloqueia padrões comuns de dados pessoais e valida a resposta; isso não substitui revisão jurídica. O resultado deve ser conferido no contrato original. O link do Trello informado pelo grupo fica na seção final; confirme e atualize o quadro antes da apresentação.
+
 ## Nome do projeto
 
 **Gestor de Contratos**
@@ -10,11 +52,11 @@
 
 O **Gestor de Contratos** é um sistema desenvolvido para centralizar o cadastro, a consulta, a atualização e o acompanhamento de contratos e das informações relacionadas a eles.
 
-A solução possui uma interface web e um backend desenvolvido em **Python com Flask**. O backend do sistema se comunica com uma **API REST hospedada na AWS**, responsável por realizar as operações de persistência e consulta no banco de dados **PostgreSQL hospedado no Amazon RDS**.
+A solução possui uma interface web e uma API REST desenvolvida em **Python com Flask**. No desenvolvimento local, o backend usa PostgreSQL configurado por variáveis de ambiente; o proxy Flask serve o frontend e encaminha as chamadas para a API.
 
 Além do gerenciamento dos contratos, o backend do sistema possui um **modelo de Inteligência Artificial** responsável por analisar as cláusulas contratuais e estimar o **risco e o impacto que o contrato pode representar para a empresa contratante**.
 
-A solução integra gerenciamento contratual, serviços em nuvem, banco de dados e Inteligência Artificial em uma única arquitetura.
+A solução integra gerenciamento contratual, banco de dados e análise textual com LLM em uma única aplicação.
 
 ---
 
@@ -44,7 +86,7 @@ A solução proposta é um **sistema web de gestão de contratos** que reúne fu
 
 O usuário acessa o sistema por meio da interface web. As ações realizadas são processadas pelo backend desenvolvido em Flask.
 
-Quando é necessário consultar ou alterar informações persistidas, o backend realiza requisições HTTP para a API REST hospedada na AWS. A API processa essas requisições e se comunica com o banco PostgreSQL hospedado no Amazon RDS.
+Quando é necessário consultar ou alterar informações persistidas, o backend realiza requisições HTTP para a API REST Flask. A API processa essas requisições e se comunica com o banco PostgreSQL.
 
 O backend também possui um modelo de Inteligência Artificial responsável por analisar as cláusulas do contrato e gerar uma **estimativa de risco/impacto para a empresa contratante**, auxiliando na avaliação do contrato antes da tomada de decisão.
 
@@ -61,7 +103,7 @@ Frontend + Backend Flask
        |                               |
        v                               v
 Modelo de IA                     API REST Flask
-Análise das cláusulas            Hospedada na AWS
+Análise das cláusulas            Executada pela API Flask
        |                               |
        v                               | SQLAlchemy
 Estimativa de risco/impacto             v
@@ -88,8 +130,7 @@ para a empresa contratante        PostgreSQL
 - **Flask-SQLAlchemy** — integração do Flask com o SQLAlchemy;
 - **SQLAlchemy** — ORM utilizado para comunicação com o banco de dados;
 - **PostgreSQL** — banco de dados relacional;
-- **Amazon RDS** — serviço utilizado para hospedar o banco PostgreSQL na AWS;
-- **AWS Lambda** — ambiente de nuvem utilizado para disponibilizar a API;
+- **PostgreSQL** — banco de dados (pode ser hospedado, por exemplo, no Amazon RDS);
 - **psycopg2** — driver utilizado para conexão com PostgreSQL;
 - **python-dotenv** — carregamento das variáveis de ambiente;
 - **Werkzeug** — utilizado em funcionalidades do Flask, incluindo geração segura de hash de senha;
@@ -114,27 +155,16 @@ O backend recebe as ações realizadas no sistema e contém as regras de negóci
 
 Ele possui duas responsabilidades principais:
 
-- comunicar-se com a API REST hospedada na AWS;
+- comunicar-se com a API REST;
 - enviar as cláusulas do contrato para o modelo de Inteligência Artificial e processar a estimativa de risco/impacto obtida.
 
-## 3. API REST na AWS
+## 3. API REST Flask
 
-A API REST funciona como intermediária entre o sistema e o banco de dados.
+A API (`api/app.py`) recebe requisições HTTP, valida os dados, aplica a autenticação por token e o isolamento por usuário, e retorna JSON. Os métodos usados são `GET`, `POST`, `PUT` e `DELETE`. Os endpoints de listagem de contratos têm paginação e filtros.
 
-Ela recebe requisições HTTP, valida os dados, executa as operações necessárias e retorna respostas no formato JSON.
+## 4. PostgreSQL
 
-Os principais métodos utilizados são:
-
-- `GET`;
-- `POST`;
-- `PUT`;
-- `DELETE`.
-
-## 4. PostgreSQL no Amazon RDS
-
-O banco PostgreSQL é responsável pela persistência das informações do sistema.
-
-A comunicação entre a API e o banco é realizada com **SQLAlchemy**.
+O banco PostgreSQL persiste as informações. A comunicação com a API é feita com **SQLAlchemy**.
 
 ### Diagrama da arquitetura
 
@@ -145,16 +175,16 @@ flowchart TD
     C --> D[Modelo de IA]
     D --> E[Análise das cláusulas]
     E --> F[Estimativa de risco/impacto para a empresa contratante]
-    C --> G[API REST Flask na AWS]
+    C --> G[API REST Flask]
     G --> H[SQLAlchemy]
-    H --> I[PostgreSQL no Amazon RDS]
+    H --> I[PostgreSQL]
 ```
 
 ---
 
 # Banco de dados utilizado
 
-O projeto utiliza **PostgreSQL**, hospedado no **Amazon RDS**.
+O projeto utiliza **PostgreSQL** (nos testes, SQLite em memória).
 
 As principais tabelas são:
 
@@ -163,7 +193,16 @@ As principais tabelas são:
 - `contrato`;
 - `clausula`;
 - `aditivo`;
-- `historico_status`.
+- `historico_status`;
+- `analise_contrato` e `resultado_analise_clausula` (análise com IA).
+
+## Justificativa da modelagem
+
+- **Cliente separado de contrato:** um cliente tem vários contratos; evita repetir dados cadastrais. `(usuario_id, documento)` é único, então cada carteira não duplica clientes.
+- **Isolamento por usuário:** `contrato.usuario_id` é obrigatório e indexado; toda consulta filtra pelo usuário autenticado.
+- **Cláusulas, aditivos e histórico em tabelas próprias** (1:N com `ON DELETE CASCADE`): crescem de forma independente e o histórico preserva a trilha de auditoria de quem verificou o contrato.
+- **Análise com IA separada** (`analise_contrato` 1:1 com contrato e `resultado_analise_clausula` 1:N): guarda modelo, versão do prompt e hash do texto (evita reanalisar texto igual) e mantém o resultado original da IA ao lado da correção humana (`*_corrigido`, `status_revisao`).
+- **Índices** em `contrato.usuario_id` e nas FKs de cláusula, aditivo e histórico, usados nos filtros e nas agregações do dashboard.
 
 ## Relacionamentos principais
 
@@ -280,17 +319,12 @@ DB_PORT=5432
 DB_NAME=nome_do_banco
 DB_USER=usuario_do_banco
 DB_PASSWORD=senha_do_banco
+SECRET_KEY=chave-aleatoria-longa   # assina os tokens de login
+GEMINI_API_KEY=                    # opcional: análise real de cláusulas
+GEMINI_MODEL=nome-do-modelo-gemini # confira um modelo disponível na sua conta
+CORS_ORIGIN=http://127.0.0.1:8000  # origem permitida (padrão: *)
+# DATABASE_URL=sqlite:///local.db  # opcional: substitui as variáveis DB_*
 ```
-
-## URL da API utilizada pelo sistema
-
-O backend consumidor pode utilizar uma variável para armazenar a URL pública da API:
-
-```env
-API_BASE_URL=https://URL_PUBLICA_DA_API
-```
-
-> Substitua `URL_PUBLICA_DA_API` pela URL real da API hospedada na AWS.
 
 ## Segurança das credenciais
 
@@ -312,59 +346,32 @@ O `.gitignore` deve conter:
 
 ## Execução local
 
-Com o ambiente virtual ativado e as dependências instaladas:
-
-```powershell
-python app.py
-```
-
-Durante o desenvolvimento, a aplicação/API pode ser acessada localmente em:
-
-```text
-http://127.0.0.1:5000
-```
-
-## Execução utilizando a API na AWS
-
-Em produção, o backend do Gestor de Contratos utiliza a URL pública da API hospedada na AWS.
-
-Exemplo:
-
-```text
-https://URL_PUBLICA_DA_API
-```
-
-Uma consulta de contratos, por exemplo, será realizada utilizando:
-
-```text
-GET https://URL_PUBLICA_DA_API/contratos
-```
-
-O fluxo é:
-
-```text
-Sistema
-   |
-   | Requisição HTTP
-   v
-API na AWS
-   |
-   | SQLAlchemy
-   v
-PostgreSQL no Amazon RDS
-   |
-   v
-Resposta JSON
-   |
-   v
-Sistema
-```
+Veja "Execução atual do CP2" no início deste arquivo: `python -m api.app` (API em `http://127.0.0.1:5000`) e `python -m backend.servidor` (frontend em `http://127.0.0.1:8000`). Para criar as tabelas em um banco novo, `python -m api.app` executa `create_all`. Defina `FLASK_DEBUG=1` apenas em desenvolvimento.
 
 ---
 
 # Principais endpoints
 
-A API disponibiliza operações CRUD para as principais entidades do sistema.
+A API disponibiliza operações CRUD para as principais entidades. Exceto `/auth/registrar` e `/auth/login`, todas exigem `Authorization: Bearer <token>`. A lista completa e os esquemas estão no Swagger.
+
+## Autenticação
+
+| Método | Endpoint | Função |
+| --- | --- | --- |
+| POST | `/auth/registrar` | Cria conta (papel de usuário comum) |
+| POST | `/auth/login` | Retorna o token |
+| GET | `/auth/me` | Dados do usuário autenticado |
+
+## Dashboard, verificação, análise com IA e formulário
+
+| Método | Endpoint | Função |
+| --- | --- | --- |
+| GET | `/dashboard/resumo` | Indicadores agregados (inclui `clausulas_alto_impacto`) |
+| POST | `/contratos/<id>/verificar` | Marca o contrato como verificado |
+| POST | `/contratos/<id>/analisar` | Analisa as cláusulas com Gemini |
+| GET | `/contratos/<id>/analise` | Consulta a análise salva |
+| PUT | `/contratos/<id>/analise/<clausula_id>` | Revisão: confirmar, corrigir ou descartar |
+| POST | `/formulario` | Cadastra contrato, cliente e cláusulas de uma vez |
 
 ## Clientes
 
@@ -380,9 +387,9 @@ A API disponibiliza operações CRUD para as principais entidades do sistema.
 
 | Método | Endpoint | Função |
 | --- | --- | --- |
-| GET | `/usuarios` | Lista todos os usuários |
+| GET | `/usuarios` | Lista usuários (somente admin) |
 | GET | `/usuarios/<id>` | Consulta um usuário |
-| POST | `/usuarios` | Cadastra um usuário |
+| POST | `/usuarios` | Responde 405: use `/auth/registrar` |
 | PUT | `/usuarios/<id>` | Atualiza um usuário |
 | DELETE | `/usuarios/<id>` | Remove um usuário |
 
@@ -466,47 +473,7 @@ A API disponibiliza operações CRUD para as principais entidades do sistema.
 
 # Documentação Swagger
 
-A API possui documentação utilizando **Swagger/OpenAPI**.
-
-## Desenvolvimento local
-
-```text
-http://127.0.0.1:5000/swagger/
-```
-
-## AWS
-
-```text
-https://URL_PUBLICA_DA_API/swagger/
-```
-
-O Swagger permite consultar e testar:
-
-- endpoints disponíveis;
-- métodos HTTP;
-- parâmetros;
-- corpo das requisições;
-- exemplos de dados;
-- códigos HTTP;
-- respostas retornadas pela API.
-
-> Antes da entrega final, substitua `URL_PUBLICA_DA_API` pelo endereço real da aplicação na AWS.
-
----
-
-# Link para documentação Swagger
-
-### Desenvolvimento local
-
-```text
-http://127.0.0.1:5000/swagger/
-```
-
-### AWS
-
-```text
-https://URL_PUBLICA_DA_API/swagger/
-```
+A API possui documentação **Swagger/OpenAPI 3** em `http://127.0.0.1:5000/swagger/` (especificação em `api/static/swagger.json`). Ela cobre autenticação, clientes, contratos, cláusulas, aditivos, histórico de status, usuários, dashboard, análise e formulário, com parâmetros, corpos de requisição e códigos HTTP.
 
 ---
 

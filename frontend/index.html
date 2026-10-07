@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gestor de Contratos com apoio de IA</title>
+  <title>Omega – Gestão de contratos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/landing.css?v=20261006-18">
 </head>
 <body class="landing-page">
 
@@ -33,59 +33,42 @@
         <p class="lead">Cadastre seus contratos e veja multas, reajustes e obrigações com impacto financeiro, além dos prazos de vencimento.</p>
         <div class="hero-cta">
           <a class="btn btn--primary" href="registrar.html">Criar conta <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
-          <a class="btn btn--inverse" href="login.html">Entrar <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
         </div>
-        <p class="hero-note">Sua carteira de contratos. No seu controle.</p>
       </div>
 
-      <aside class="example" aria-label="Exemplo fictício de análise de contrato">
-        <div class="example-block example-topline">
-          <span>EXEMPLO FICTÍCIO</span>
-        </div>
-        <div class="example-block example-clause">
-          <div class="document-label">CLÁUSULA 08 <span>·</span> RESCISÃO</div>
-          <blockquote>“Em caso de encerramento antecipado, será aplicada multa equivalente a <mark>20% do valor restante</mark> do contrato.”</blockquote>
-        </div>
-        <div class="example-block example-attention">
-          <span class="result-label">PONTO DE ATENÇÃO FINANCEIRA</span>
-          <p>Multa de rescisão: <strong>20%</strong> <span class="risk-label">(alto impacto)</span></p>
-          <div class="example-due"><svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#calendar-clock"/></svg><span>Vence em 30 dias</span></div>
-        </div>
-        <p class="example-note">Análise automática. Confira no contrato original.</p>
+      <aside class="card-stack" role="group" aria-label="Exemplos de análise de cláusulas">
+        <div class="stack-cards" aria-live="off"></div>
+        <div class="stack-indicators" aria-label="Escolher exemplo"></div>
       </aside>
     </section>
 
     <section class="section resources" id="recursos">
-      <div class="shell">
-        <div class="section-heading">
-          <p class="eyebrow">UMA VISÃO MAIS ÚTIL</p>
-          <h2>Do texto às decisões que merecem atenção.</h2>
-          <p>Ferramentas para organizar sua carteira e revisar os pontos financeiros de cada contrato.</p>
-        </div>
-        <div class="resource-layout">
+      <div class="shell resource-layout">
+        <div class="resource-intro">
+          <div class="section-heading">
+            <p class="eyebrow">UMA VISÃO MAIS ÚTIL</p>
+            <h2>Do texto às decisões que merecem atenção.</h2>
+            <p>Ferramentas para organizar sua carteira e revisar os pontos financeiros de cada contrato.</p>
+          </div>
           <article class="resource-featured">
-            <span class="resource-number">01 <span>RECURSO EM DESTAQUE</span></span>
+            <span class="resource-number"><span>RECURSO EM DESTAQUE</span></span>
             <h3>Análise de cláusulas com IA</h3>
             <p>Sinalize multas, reajustes e obrigações com impacto financeiro. A análise ajuda a localizar pontos de atenção para você conferir no contrato original.</p>
           </article>
-          <div class="resource-list">
-            <article class="list-row">
-              <span class="list-number">02</span>
-              <div class="list-copy"><h3>Revisão com o trecho original ao lado</h3><p>Confira o contexto do contrato junto ao que foi identificado.</p></div>
-            </article>
-            <article class="list-row">
-              <span class="list-number">03</span>
-              <div class="list-copy"><h3>Vencimentos em destaque</h3><p>Tenha os prazos de término da carteira sempre à vista.</p></div>
-            </article>
-            <article class="list-row">
-              <span class="list-number">04</span>
-              <div class="list-copy"><h3>Dashboard da carteira</h3><p>Acompanhe valores, tipos de contrato e pontos de atenção.</p></div>
-            </article>
-            <article class="list-row">
-              <span class="list-number">05</span>
-              <div class="list-copy"><h3>Cláusulas e aditivos</h3><p>Mantenha os registros relacionados organizados por contrato.</p></div>
-            </article>
-          </div>
+        </div>
+        <div class="resource-list">
+          <article class="list-row">
+            <div class="list-copy"><h3>Revisão com o trecho original ao lado</h3><p>Confira o contexto do contrato junto ao que foi identificado.</p></div>
+          </article>
+          <article class="list-row">
+            <div class="list-copy"><h3>Vencimentos em destaque</h3><p>Tenha os prazos de término da carteira sempre à vista.</p></div>
+          </article>
+          <article class="list-row">
+            <div class="list-copy"><h3>Dashboard da carteira</h3><p>Acompanhe valores, tipos de contrato e pontos de atenção.</p></div>
+          </article>
+          <article class="list-row">
+            <div class="list-copy"><h3>Cláusulas e aditivos</h3><p>Mantenha os registros relacionados organizados por contrato.</p></div>
+          </article>
         </div>
       </div>
     </section>
@@ -97,9 +80,21 @@
           <h2>Como funciona</h2>
         </div>
         <ol class="steps">
-          <li class="list-row"><span class="list-number">01</span><div class="list-copy"><h3>Cadastre o contrato</h3><p>Reúna os dados e o texto na sua carteira.</p></div></li>
-          <li class="list-row"><span class="list-number">02</span><div class="list-copy"><h3>A IA sinaliza cláusulas de impacto financeiro</h3><p>Veja os pontos que podem afetar os custos e obrigações.</p></div></li>
-          <li class="list-row"><span class="list-number">03</span><div class="list-copy"><h3>Você revisa e acompanha na carteira e no dashboard</h3><p>Consulte os registros e os prazos quando precisar.</p></div></li>
+          <li class="step">
+            <span class="step-number">01</span>
+            <h3>Cadastre o contrato</h3>
+            <p>Reúna os dados e o texto na sua carteira.</p>
+          </li>
+          <li class="step">
+            <span class="step-number">02</span>
+            <h3>A IA sinaliza cláusulas de impacto financeiro</h3>
+            <p>Veja os pontos que podem afetar os custos e obrigações.</p>
+          </li>
+          <li class="step">
+            <span class="step-number">03</span>
+            <h3>Você revisa e acompanha na carteira e no dashboard</h3>
+            <p>Consulte os registros e os prazos quando precisar.</p>
+          </li>
         </ol>
       </div>
     </section>
@@ -122,6 +117,7 @@
     </div>
   </footer>
 
+  <script src="js/landing.js?v=20261006-2" defer></script>
   <script>document.getElementById("ano").textContent = new Date().getFullYear();</script>
 </body>
 </html>

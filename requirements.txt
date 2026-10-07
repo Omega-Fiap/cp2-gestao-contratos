@@ -4,3 +4,4 @@ flask-swagger-ui
 psycopg2-binary
 python-dotenv
 requests
+pytest

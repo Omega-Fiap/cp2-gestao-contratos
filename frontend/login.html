@@ -1,49 +1,54 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login · Gestor de Contratos</title>
-  <script>document.documentElement.dataset.theme = localStorage.getItem("tema") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · Omega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/auth.css?v=20261006-1">
 </head>
 <body>
-  <header class="navbar">
-    <div class="nav-inner">
-      <a class="brand" href="index.html"><span class="brand-mark">GC</span> Gestor de Contratos</a>
-      <div class="nav-actions">
-        <span class="theme-slot"></span>
-        <a class="btn btn-ghost" href="index.html">Voltar</a>
-        <a class="btn btn-primary" href="registrar.html">Registrar</a>
-      </div>
-    </div>
-  </header>
+<header class="site-header">
+<div class="shell nav-inner">
+<a class="brand" href="index.html"><span class="brand-mark">Ω</span><span>Omega <small>Gestão de contratos</small></span></a>
+<div class="nav-actions">
+<span class="theme-slot" hidden></span>
+<a class="btn btn--primary" href="registrar.html">Criar conta <svg class="icon" aria-hidden="true" focusable="false"><use href="img/icons.svg#arrow-right"/></svg></a>
+</div>
+</div>
+</header>
 
-  <main class="page-center">
-    <div class="card auth-card">
-      <h1>Entrar</h1>
-      <p class="muted">Acesse o painel de gestão de contratos.</p>
+<main class="auth-main">
+<div class="shell auth-layout">
+<div class="auth-copy">
+<h1>Entrar</h1>
+<p>Acesse o painel de gestão de contratos.</p>
+</div>
 
-      <div class="alert alert-ok" id="aviso" hidden>Cadastro realizado! Faça login para continuar.</div>
-      <div class="alert alert-erro" id="erro" hidden></div>
+<div class="auth-panel">
+<div class="alert alert-ok" id="aviso" hidden>Cadastro realizado! Faça login para continuar.</div>
+<div class="alert alert-erro" id="erro" hidden></div>
 
-      <form id="form-login" novalidate>
-        <div class="field">
-          <label for="email">E-mail</label>
-          <input type="email" id="email" autocomplete="email" required>
-        </div>
-        <div class="field">
-          <label for="senha">Senha</label>
-          <input type="password" id="senha" autocomplete="current-password" required>
-        </div>
-        <button class="btn btn-primary btn-block" type="submit">Entrar</button>
-      </form>
+<form id="form-login" novalidate>
+<div class="field">
+<label for="email">E-mail</label>
+<input type="email" id="email" autocomplete="email" required>
+</div>
+<div class="field">
+<label for="senha">Senha</label>
+<input type="password" id="senha" autocomplete="current-password" required>
+</div>
+<button class="btn btn--primary btn--block" type="submit">Entrar</button>
+</form>
 
-      <p class="auth-foot">Ainda não tem conta? <a href="registrar.html">Registre-se</a></p>
-    </div>
-  </main>
+<p class="auth-foot">Ainda não tem conta? <a href="registrar.html">Registre-se</a></p>
+</div>
+</div>
+</main>
 
-  <script src="js/common.js"></script>
-  <script src="js/auth.js"></script>
+<script src="js/common.js"></script>
+<script src="js/auth.js"></script>
 </body>
 </html>

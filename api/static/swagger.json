@@ -1,0 +1,1884 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Omega - Gestao de Contratos API",
+    "version": "2.0.0",
+    "description": "API de gestao de contratos. Recursos de carteira exigem token Bearer. Os dados do usuario sao determinados pelo token; usuario_id nao e aceito no corpo."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000",
+      "description": "Desenvolvimento local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Cadastro, login e sessao"
+    },
+    {
+      "name": "contratos",
+      "description": "Contratos e recursos vinculados a carteira"
+    },
+    {
+      "name": "dashboard",
+      "description": "Indicadores agregados da carteira autenticada"
+    },
+    {
+      "name": "clausulas",
+      "description": "Clausulas vinculadas a contratos do usuario"
+    },
+    {
+      "name": "clientes",
+      "description": "Clientes privados por carteira"
+    },
+    {
+      "name": "formulario",
+      "description": "Cadastro autenticado de contrato e clausulas"
+    },
+    {
+      "name": "aditivos",
+      "description": "Aditivos contratuais"
+    },
+    {
+      "name": "historico-status",
+      "description": "Historico de status dos contratos"
+    },
+    {
+      "name": "usuarios",
+      "description": "Usuarios (admin)"
+    }
+  ],
+  "paths": {
+    "/auth/registrar": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Cria uma conta de usuario",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registro"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conta criada com papel usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "409": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Inicia sessao",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token e perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sessao"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Retorna o perfil autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil do usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/contratos": {
+      "get": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Lista contratos da carteira autenticada",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tipo_contrato",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Busca por numero, titulo ou nome do cliente",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pagina de contratos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaContratos"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Cria contrato na carteira autenticada",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoContrato"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contrato criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contrato"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/contratos/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Consulta contrato proprio",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contrato"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Atualiza contrato proprio",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtualizaContrato"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contrato atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contrato"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Exclui contrato proprio e seus registros dependentes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato removido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/contratos/{id}/verificar": {
+      "post": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Marca contrato proprio como verificado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato verificado"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "409": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/contratos/{id}/analisar": {
+      "post": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Analisa apenas as descricoes das clausulas do contrato proprio",
+        "description": "Envia texto contratual sem os dados do cliente. O resultado estruturado e validado e reutilizado enquanto o texto das clausulas nao mudar. Requer GEMINI_API_KEY no servidor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Nova analise persistida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoAnalise"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Analise salva reutilizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoAnalise"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "422": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "502": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/contratos/{id}/analise": {
+      "get": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Consulta analise salva de contrato proprio sem chamar o Gemini",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analise salva",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoAnalise"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/contratos/{id}/analise/{clausula_id}": {
+      "put": {
+        "tags": [
+          "contratos"
+        ],
+        "summary": "Confirma, corrige ou descarta um achado da analise",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "clausula_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevisaoAnalise"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Revisao salva",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClausulaAnalisada"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/dashboard/resumo": {
+      "get": {
+        "tags": [
+          "dashboard"
+        ],
+        "summary": "Retorna indicadores agregados da carteira autenticada",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Indicadores, valores e contratos por tipo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumoDashboard"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/clientes": {
+      "get": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Lista clientes da carteira autenticada",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de clientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Cliente"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Cria cliente na carteira autenticada",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoCliente"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cliente"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/clausulas": {
+      "get": {
+        "tags": [
+          "clausulas"
+        ],
+        "summary": "Lista clausulas de contratos proprios",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contrato_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de clausulas"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clausulas"
+        ],
+        "summary": "Cria clausula em contrato proprio",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovaClausula"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Clausula criada"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/formulario": {
+      "post": {
+        "tags": [
+          "formulario"
+        ],
+        "summary": "Registra cliente, contrato e clausulas na carteira autenticada",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cliente",
+                  "contrato"
+                ],
+                "properties": {
+                  "cliente": {
+                    "$ref": "#/components/schemas/NovoCliente"
+                  },
+                  "contrato": {
+                    "$ref": "#/components/schemas/NovoContratoFormulario"
+                  },
+                  "clausulas": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/NovaClausulaFormulario"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Formulario registrado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/aditivos": {
+      "get": {
+        "tags": [
+          "aditivos"
+        ],
+        "summary": "Lista aditivos da carteira",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de aditivos"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        },
+        "parameters": [
+          {
+            "name": "contrato_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "aditivos"
+        ],
+        "summary": "Cria aditivo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoAditivo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/aditivos/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "aditivos"
+        ],
+        "summary": "Consulta registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "aditivos"
+        ],
+        "summary": "Atualiza registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoAditivo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "aditivos"
+        ],
+        "summary": "Remove registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/historico-status": {
+      "get": {
+        "tags": [
+          "historico-status"
+        ],
+        "summary": "Lista registros de historico da carteira",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de registros de historico"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          }
+        },
+        "parameters": [
+          {
+            "name": "contrato_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "historico-status"
+        ],
+        "summary": "Cria registros de historico",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoHistorico"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/historico-status/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "historico-status"
+        ],
+        "summary": "Consulta registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "historico-status"
+        ],
+        "summary": "Atualiza registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoHistorico"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "historico-status"
+        ],
+        "summary": "Remove registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/clausulas/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "clausulas"
+        ],
+        "summary": "Consulta registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "clausulas"
+        ],
+        "summary": "Atualiza registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovaClausula"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "clausulas"
+        ],
+        "summary": "Remove registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/clientes/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Consulta registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Atualiza registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoCliente"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Remove registro",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/usuarios": {
+      "get": {
+        "tags": [
+          "usuarios"
+        ],
+        "summary": "Lista usuarios (somente admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "403": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "usuarios"
+        ],
+        "summary": "Nao suportado: use /auth/registrar",
+        "responses": {
+          "405": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    },
+    "/usuarios/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "usuarios"
+        ],
+        "summary": "Consulta o proprio usuario (admin consulta qualquer um)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "usuarios"
+        ],
+        "summary": "Atualiza usuario",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          },
+          "400": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "usuarios"
+        ],
+        "summary": "Remove usuario",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          },
+          "401": {
+            "$ref": "#/components/responses/Erro"
+          },
+          "404": {
+            "$ref": "#/components/responses/Erro"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "URLSafeTimedSerializer"
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "responses": {
+      "Erro": {
+        "description": "Resposta JSON de erro",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Erro"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Erro": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "erro"
+        ]
+      },
+      "Registro": {
+        "type": "object",
+        "required": [
+          "nome",
+          "email",
+          "senha"
+        ],
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "senha": {
+            "type": "string",
+            "minLength": 6
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": [
+          "email",
+          "senha"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "senha": {
+            "type": "string"
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "papel": {
+            "type": "string"
+          }
+        }
+      },
+      "Sessao": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/Usuario"
+          }
+        }
+      },
+      "Cliente": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "nullable": true
+          },
+          "documento": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "telefone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "NovoCliente": {
+        "type": "object",
+        "required": [
+          "nome"
+        ],
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "documento": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "telefone": {
+            "type": "string"
+          }
+        }
+      },
+      "Contrato": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "numero": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "cliente_id": {
+            "type": "integer"
+          },
+          "tipo_contrato": {
+            "type": "string",
+            "nullable": true
+          },
+          "valor_total": {
+            "type": "number",
+            "nullable": true
+          },
+          "data_inicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "data_fim": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "NovoContrato": {
+        "type": "object",
+        "required": [
+          "numero",
+          "titulo",
+          "cliente_id",
+          "data_inicio"
+        ],
+        "properties": {
+          "numero": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "cliente_id": {
+            "type": "integer"
+          },
+          "tipo_contrato": {
+            "type": "string"
+          },
+          "valor_total": {
+            "type": "number"
+          },
+          "data_inicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "data_fim": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "AtualizaContrato": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "cliente_id": {
+            "type": "integer"
+          },
+          "tipo_contrato": {
+            "type": "string"
+          },
+          "valor_total": {
+            "type": "number"
+          },
+          "data_inicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "data_fim": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "PaginaContratos": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contrato"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "per_page": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "pages": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "ResumoDashboard": {
+        "type": "object",
+        "properties": {
+          "total_contratos": {
+            "type": "integer"
+          },
+          "contratos_pendentes": {
+            "type": "integer"
+          },
+          "contratos_verificados": {
+            "type": "integer"
+          },
+          "valor_total": {
+            "type": "number"
+          },
+          "vencendo_em_30_dias": {
+            "type": "integer"
+          },
+          "total_aditivos": {
+            "type": "integer"
+          },
+          "contratos_por_tipo": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tipo": {
+                  "type": "string"
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "clausulas_alto_impacto": {
+            "type": "integer",
+            "description": "Clausulas de impacto alto (considera correcao da revisao; exclui descartadas)"
+          }
+        }
+      },
+      "ResultadoAnalise": {
+        "type": "object",
+        "properties": {
+          "clausulas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClausulaAnalisada"
+            }
+          },
+          "modelo": {
+            "type": "string"
+          },
+          "versao_prompt": {
+            "type": "string"
+          },
+          "reutilizada": {
+            "type": "boolean"
+          },
+          "analisado_em": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ClausulaAnalisada": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "valor_ou_percentual": {
+            "type": "string"
+          },
+          "impacto": {
+            "type": "string",
+            "enum": [
+              "baixo",
+              "médio",
+              "alto"
+            ]
+          },
+          "trecho_original": {
+            "type": "string"
+          },
+          "status_revisao": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "confirmada",
+              "corrigida",
+              "descartada"
+            ]
+          },
+          "tipo_corrigido": {
+            "type": "string",
+            "nullable": true
+          },
+          "valor_corrigido": {
+            "type": "string",
+            "nullable": true
+          },
+          "impacto_corrigido": {
+            "type": "string",
+            "nullable": true
+          },
+          "revisado_em": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "RevisaoAnalise": {
+        "type": "object",
+        "required": [
+          "acao"
+        ],
+        "properties": {
+          "acao": {
+            "type": "string",
+            "enum": [
+              "confirmar",
+              "corrigir",
+              "descartar"
+            ]
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "valor_ou_percentual": {
+            "type": "string"
+          },
+          "impacto": {
+            "type": "string",
+            "enum": [
+              "baixo",
+              "médio",
+              "alto"
+            ]
+          }
+        }
+      },
+      "NovaClausula": {
+        "type": "object",
+        "required": [
+          "contrato_id"
+        ],
+        "properties": {
+          "contrato_id": {
+            "type": "integer"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string",
+            "maxLength": 30000
+          },
+          "ordem": {
+            "type": "integer"
+          }
+        }
+      },
+      "NovoContratoFormulario": {
+        "type": "object",
+        "required": [
+          "titulo",
+          "data_inicio"
+        ],
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "tipo_contrato": {
+            "type": "string"
+          },
+          "valor_total": {
+            "type": "number"
+          },
+          "data_inicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "data_fim": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "NovaClausulaFormulario": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string",
+            "maxLength": 30000
+          }
+        }
+      },
+      "NovoAditivo": {
+        "type": "object",
+        "required": [
+          "contrato_id",
+          "descricao",
+          "data_assinatura"
+        ],
+        "properties": {
+          "contrato_id": {
+            "type": "integer"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "novo_valor": {
+            "type": "number"
+          },
+          "nova_data_fim": {
+            "type": "string",
+            "format": "date"
+          },
+          "data_assinatura": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "NovoHistorico": {
+        "type": "object",
+        "required": [
+          "contrato_id"
+        ],
+        "properties": {
+          "contrato_id": {
+            "type": "integer"
+          },
+          "status_anterior": {
+            "type": "string"
+          },
+          "status_novo": {
+            "type": "string"
+          },
+          "alterado_em": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

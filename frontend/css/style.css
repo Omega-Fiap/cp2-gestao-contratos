@@ -333,6 +333,9 @@ dialog.sm { width: min(440px, 100% - 2rem); }
 .lista-simples li { padding: .65rem .85rem; border: 1px solid var(--border); border-radius: 10px; margin-bottom: .5rem; background: var(--bg); }
 .lista-simples li strong { display: block; }
 .lista-simples li span { color: var(--muted); font-size: .9rem; }
+.review-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: .75rem; margin-top: .75rem; }
+.review-form .field { min-width: 0; margin: 0; }
+.review-form > button { margin-bottom: 0; }
 
 /* ---------- Toasts ---------- */
 #toasts { position: fixed; right: 1rem; bottom: 1rem; z-index: 100; display: flex; flex-direction: column; gap: .6rem; }
@@ -354,6 +357,7 @@ dialog.sm { width: min(440px, 100% - 2rem); }
   .nav-links { display: none; }
 }
 @media (max-width: 560px) {
+  .review-form { grid-template-columns: 1fr; }
   .landing-page .nav-actions { gap: .3rem; }
   .landing-page .nav-actions .btn { padding-inline: .55rem; }
   .grid-2 { grid-template-columns: 1fr; }
